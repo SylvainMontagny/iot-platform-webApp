@@ -241,6 +241,12 @@ h2 {
   padding: 0.75rem;
   text-align: left;
   border-bottom: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
+}
+
+.devices-table th:last-child,
+.devices-table td:last-child {
+  border-right: none;
 }
 
 .devices-table th {
@@ -266,4 +272,64 @@ h2 {
   align-items: center;
   justify-content: center;
   color: #6c757d;
+}
+
+/* Device section styles */
+.device-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.refresh-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #0f6cbd;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.refresh-button:hover {
+  background-color: #0b5a9e;
+}
+
+.refresh-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Table sorting styles */
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 1.5rem;
+}
+
+.sortable:hover {
+  background-color: #f8f9fa;
+}
+
+.sort-icon {
+  position: absolute;
+  right: 0.5rem;
+  color: #6c757d;
+  font-size: 0.8rem;
+}
+
+.sortable.asc .sort-icon::after {
+  content: "↑";
+  color: #0f6cbd;
+}
+
+.sortable.desc .sort-icon::after {
+  content: "↓";
+  color: #0f6cbd;
 }
