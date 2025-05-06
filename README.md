@@ -29,8 +29,8 @@ Fill in your ChirpStack server address and API token.
 cd web-device-controller
 docker compose up -d --build
 ```
-3. Stop the containers
 
+3. Stop the containers
 ```shell
 docker compose down
 ```
@@ -60,3 +60,30 @@ This project includes a function to list LoRaWAN devices associated with a given
   ]
 }
 ```
+
+### 3. Get Device Details
+This project includes a function to retrieve the details of a single LoRaWAN device based on its devEui.
+
+### Endpoint
+
+`GET http://localhost:3000/api/getdevice/:devEui`
+
+### Path Parameters
+
+- `devEui` (string): The unique identifier of the device you want to retrieve details for.
+
+### Response
+
+```json
+{
+  "success": true,
+  "device": {
+    "devEui": "a1b2c3d4e5f67890",
+    "name": "device-01",
+    "description": "Temperature sensor",
+    "deviceProfileId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "deviceProfileName": "temp-sensor-profile",
+    "lastSeen": "2023-05-01T12:00:00Z",
+    "deviceStatus": "active"
+  }
+}
