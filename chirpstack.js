@@ -70,5 +70,26 @@ function getDeviceDetails(devEui) {
     });
 }
 
-module.exports = { listDevices, getDeviceDetails };
+// This function retrieves the details of a single device based on its devEui
+function updatedevice(deviceData) {
+    return new Promise((resolve, reject) => {
+        const device = new device_pb.Device();
+        device.setDevEui(deviceData.devEui);
+        device.setName(deviceData.name);
+        device.setDescription(deviceData.description);
+        device.setDeviceProfileId(deviceData.deviceProfileId);
+        device.setApplicationId(applicationId);
+
+        const req = new device_pb.UpdateDeviceRequest();
+        req.setDevice(device);
+
+        deviceService.update(req, metadata, (err, resp) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve({ success: true, message: 'Device updated successfully' });
+        });
+    });
+}
+module.exports = { listDevices, getDeviceDetails, updatedevice };
 
