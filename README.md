@@ -55,7 +55,14 @@ This project includes a function to list LoRaWAN devices associated with a given
       "name": "device-01",
       "description": "Temperature sensor",
       "deviceProfileId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-      "deviceProfileName": "temp-sensor-profile"
+      "deviceProfileName": "temp-sensor-profile",
+      "lastSeen": "2023-05-01T12:00:00Z",
+      "deviceStatus": "active"
+      "tags": {
+                "building": "8D",
+                "room": "121",
+                "site": "bourget"
+            }
     }
   ]
 }
@@ -78,12 +85,51 @@ This project includes a function to retrieve the details of a single LoRaWAN dev
 {
   "success": true,
   "device": {
-    "devEui": "a1b2c3d4e5f67890",
-    "name": "device-01",
-    "description": "Temperature sensor",
-    "deviceProfileId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    "deviceProfileName": "temp-sensor-profile",
-    "lastSeen": "2023-05-01T12:00:00Z",
-    "deviceStatus": "active"
-  }
+      "devEui": "a1b2c3d4e5f67890",
+      "name": "device-01",
+      "description": "Temperature sensor",
+      "deviceProfileId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      "deviceProfileName": "temp-sensor-profile",
+      "lastSeen": "2023-05-01T12:00:00Z",
+      "deviceStatus": "active"
+      "tags": {
+                "building": "8D",
+                "room": "121",
+                "site": "bourget"
+            }
+    }
+```
+
+### 3. Get Device Details
+You can filter the list of devices by their profile name (type).
+
+### Endpoint
+
+`GET http://localhost:3000/api/getdevices/type/:type`
+
+### Path Parameters
+
+- `type` (string): The type of the device (e.g., temp-sensor-profile)
+
+### Update Device
+
+This function allows you to update an existing LoRaWAN device's information, including its name, description, and device profile ID.
+
+### Endpoint
+
+`PUT http://localhost:3000/api/updatedevice`
+
+### Request Body
+
+```json
+{
+    "devEui": "3e632b42a3f6e24d",
+    "name": "updated-name",
+    "description": "new description",
+    "deviceProfileId": "xxx-xxx-xxx-xxx-xxx",
+    "tags": {
+        "building": "9C",
+        "room": "101",
+        "site": "montreal"
+    }
 }
