@@ -1,7 +1,10 @@
+// État du type de device actif
+let currentDeviceType = "usmb-valve"; // Par défaut, on affiche les valves
+
 // Fonction pour récupérer les devices depuis l'API
 async function fetchDevices() {
   try {
-    const response = await fetch("/api/getdevices");
+    const response = await fetch(`/api/getdevices/type/${currentDeviceType}`);
     const data = await response.json();
 
     if (data.success) {
@@ -110,6 +113,31 @@ async function refreshDevices() {
   updateDevicesTable(devices);
 }
 
+// Fonction pour gérer le changement de section
+function handleSectionChange(section) {
+  // Mettre à jour le type de device actif
+  currentDeviceType =
+    section === "thermostat" ? "usmb-valve" : "temperature-sensor";
+
+  // Mettre à jour la classe active dans le menu
+  document.querySelectorAll(".nav-links a").forEach((link) => {
+    link.classList.remove("active");
+  });
+  document.querySelector(`a[href="#${section}"]`).classList.add("active");
+
+  // Mettre à jour le titre de la page
+  const title = document.querySelector("h1");
+  if (title) {
+    title.textContent =
+      section === "thermostat"
+        ? "Thermostatic Valve Device Management"
+        : "Temperature Sensor Device Management";
+  }
+
+  // Rafraîchir les devices avec le nouveau type
+  refreshDevices();
+}
+
 // Ajouter les écouteurs d'événements
 document.addEventListener("DOMContentLoaded", () => {
   // Rafraîchir les devices au chargement de la page
@@ -126,6 +154,15 @@ document.addEventListener("DOMContentLoaded", () => {
     th.addEventListener("click", () => {
       const column = th.getAttribute("data-column");
       handleSort(column);
+    });
+  });
+
+  // Ajouter les écouteurs d'événements pour le changement de section
+  document.querySelectorAll(".nav-links a").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const section = e.target.getAttribute("href").substring(1);
+      handleSectionChange(section);
     });
   });
 });
