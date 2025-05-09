@@ -1,18 +1,27 @@
 const grpc = require("@grpc/grpc-js");
 const device_grpc = require("@chirpstack/chirpstack-api/api/device_grpc_pb");
 const device_pb = require("@chirpstack/chirpstack-api/api/device_pb");
+const deviceProfile_grpc = require("@chirpstack/chirpstack-api/api/device_profile_grpc_pb");
+const deviceProfile_pb = require("@chirpstack/chirpstack-api/api/device_profile_pb");
 
 const server = process.env.URL_SERVER;
 const apiToken = process.env.API_TOKEN;
 const applicationId = process.env.APP_ID;
 
-const deviceService = new device_grpc.DeviceServiceClient(
-  server,
-  grpc.credentials.createInsecure()
-);
-
+// Create a gRPC metadata object used to include the authorization token in each request
 const metadata = new grpc.Metadata();
-metadata.set("authorization", "Bearer " + apiToken);
+metadata.set("authorization", "Bearer " + apiToken); // Add the API token to the "authorization" header
+
+// Utility function to create a gRPC client using the same connection parameters
+function createGrpcClient(ServiceClient) {
+  return new ServiceClient(server, grpc.credentials.createInsecure()); // Uses an insecure connection (should be secured in production)
+}
+
+// Create the gRPC client to interact with the ChirpStack Device service
+const deviceService = createGrpcClient(device_grpc.DeviceServiceClient);
+
+// Create the gRPC client to interact with the ChirpStack DeviceProfile service
+const deviceProfileService = createGrpcClient(deviceProfile_grpc.DeviceProfileServiceClient);
 
 // This function retrieves a list of devices from the ChirpStack server.
 async function getDevices() {
@@ -39,35 +48,30 @@ async function getDevices() {
 }
 
 // This function retrieves the details of a single device based on its devEui
-function getDeviceDetails(devEui) {
+async function getDeviceDetails(devEui) {
   return new Promise((resolve, reject) => {
     const req = new device_pb.GetDeviceRequest();
     req.setDevEui(devEui);
 
-    deviceService.get(req, metadata, (err, resp) => {
+    deviceService.get(req, metadata, async (err, resp) => {
       if (err) return reject(err);
 
       const result = resp.getDevice();
-
-      // Conversion propre de la Map des tags
       const tagsMap = result.getTagsMap();
       const tags = {};
       tagsMap.forEach((value, key) => {
         tags[key] = value;
       });
 
+      const deviceProfileId = result.getDeviceProfileId();
+      const deviceProfileName = await getDeviceProfileName(deviceProfileId);
+
       const device = {
-        devEui: result.getDevEui ? result.getDevEui() : null,
-        name: result.getName ? result.getName() : null,
-        description: result.getDescription ? result.getDescription() : null,
-        deviceProfileId: result.getDeviceProfileId
-          ? result.getDeviceProfileId()
-          : null,
-        deviceProfileName: result.getDeviceProfileName
-          ? result.getDeviceProfileName()
-          : null,
-        lastSeen: result.getLastSeen ? result.getLastSeen() : null,
-        deviceStatus: result.getStatus ? result.getStatus() : null,
+        devEui: result.getDevEui(),
+        name: result.getName(),
+        description: result.getDescription(),
+        deviceProfileId: deviceProfileId,
+        deviceProfileName: deviceProfileName,
         tags: tags,
       };
 
@@ -103,6 +107,20 @@ function updatedevice(deviceData) {
         return reject(err);
       }
       resolve({ success: true, message: "Device updated successfully" });
+    });
+  });
+}
+
+function getDeviceProfileName(deviceProfileId) {
+  return new Promise((resolve, reject) => {
+    const req = new deviceProfile_pb.GetDeviceProfileRequest();
+    req.setId(deviceProfileId);
+
+    deviceProfileService.get(req, metadata, (err, resp) => {
+      if (err) return resolve(null); // on ignore l’erreur pour ne pas bloquer
+
+      const dp = resp.getDeviceProfile();
+      resolve(dp.getName());
     });
   });
 }
