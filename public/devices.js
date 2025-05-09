@@ -17,6 +17,39 @@ async function fetchDevices() {
   }
 }
 
+// État du tri
+let currentSort = {
+  column: null,
+  direction: "asc",
+};
+
+// Fonction pour trier les devices
+function sortDevices(devices, column, direction) {
+  return [...devices].sort((a, b) => {
+    let valueA, valueB;
+
+    if (column === "name") {
+      valueA = a.name || "N/A";
+      valueB = b.name || "N/A";
+    } else {
+      valueA = a.tags?.[column] || "N/A";
+      valueB = b.tags?.[column] || "N/A";
+    }
+
+    // Si l'une des valeurs est "N/A", la placer à la fin
+    if (valueA === "N/A" && valueB !== "N/A") return 1;
+    if (valueA !== "N/A" && valueB === "N/A") return -1;
+    if (valueA === "N/A" && valueB === "N/A") return 0;
+
+    // Sinon, trier normalement
+    if (direction === "asc") {
+      return valueA.localeCompare(valueB);
+    } else {
+      return valueB.localeCompare(valueA);
+    }
+  });
+}
+
 // Fonction pour mettre à jour le tableau des devices
 function updateDevicesTable(devices) {
   const tbody = document.querySelector(".devices-table tbody");
@@ -25,6 +58,11 @@ function updateDevicesTable(devices) {
     tbody.innerHTML =
       '<tr><td colspan="4" class="no-data">Aucun device trouvé</td></tr>';
     return;
+  }
+
+  // Appliquer le tri si une colonne est sélectionnée
+  if (currentSort.column) {
+    devices = sortDevices(devices, currentSort.column, currentSort.direction);
   }
 
   tbody.innerHTML = devices
@@ -39,6 +77,31 @@ function updateDevicesTable(devices) {
     `
     )
     .join("");
+}
+
+// Fonction pour gérer le tri
+function handleSort(column) {
+  const th = document.querySelector(`th[data-column="${column}"]`);
+
+  // Réinitialiser les classes de tri sur toutes les colonnes
+  document.querySelectorAll("th.sortable").forEach((header) => {
+    header.classList.remove("asc", "desc");
+  });
+
+  if (currentSort.column === column) {
+    // Inverser la direction si on clique sur la même colonne
+    currentSort.direction = currentSort.direction === "asc" ? "desc" : "asc";
+  } else {
+    // Nouvelle colonne, tri ascendant par défaut
+    currentSort.column = column;
+    currentSort.direction = "asc";
+  }
+
+  // Mettre à jour la classe de tri
+  th.classList.add(currentSort.direction);
+
+  // Rafraîchir le tableau avec le nouveau tri
+  refreshDevices();
 }
 
 // Fonction pour rafraîchir les devices
@@ -57,4 +120,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (refreshButton) {
     refreshButton.addEventListener("click", refreshDevices);
   }
+
+  // Ajouter les écouteurs d'événements pour le tri
+  document.querySelectorAll("th.sortable").forEach((th) => {
+    th.addEventListener("click", () => {
+      const column = th.getAttribute("data-column");
+      handleSort(column);
+    });
+  });
 });
