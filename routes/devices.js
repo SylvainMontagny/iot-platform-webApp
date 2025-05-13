@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { getDevices, getDeviceDetails, updatedevice } = require('../chirpstack');
+const { getDevices, getDeviceDetails, updatedevice, sendDownlink } = require('../chirpstack');
 
 // Get all devices
 router.get('/getdevices', async (req, res) => {
@@ -55,6 +55,24 @@ router.put('/updatedevice', async (req, res) => {
     try {
         const result = await updatedevice(deviceData);
         res.json(result);
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+router.post('/downlink', async (req, res) => {
+    const { devEui, payload } = req.body;
+
+    if (!devEui || !payload || !Array.isArray(payload)) {
+        return res.status(400).json({
+            success: false,
+            message: "Requête invalide : devEui et payload (array) sont requis",
+        });
+    }
+
+    try {
+        const id = await sendDownlink(devEui, payload);
+        res.json({ success: true, id });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }

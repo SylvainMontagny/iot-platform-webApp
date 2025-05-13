@@ -125,4 +125,24 @@ function getDeviceProfileName(deviceProfileId) {
   });
 }
 
-module.exports = { getDevices, getDeviceDetails, updatedevice };
+function sendDownlink(devEui, payloadArray) {
+  return new Promise((resolve, reject) => {
+      const item = new device_pb.DeviceQueueItem();
+      item.setDevEui(devEui);
+      item.setFPort(10);
+      item.setConfirmed(false);
+      item.setData(Uint8Array.from(payloadArray));
+
+      const enqueueReq = new device_pb.EnqueueDeviceQueueItemRequest();
+      enqueueReq.setQueueItem(item);
+
+      deviceService.enqueue(enqueueReq, metadata, (err, resp) => {
+          if (err) {
+              return reject(err);
+          }
+          resolve(resp.getId());
+      });
+  });
+}
+
+module.exports = { getDevices, getDeviceDetails, updatedevice, sendDownlink };
