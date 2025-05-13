@@ -59,7 +59,7 @@ function updateDevicesTable(devices) {
 
   if (devices.length === 0) {
     tbody.innerHTML =
-      '<tr><td colspan="4" class="no-data">Aucun device trouvé</td></tr>';
+      '<tr><td colspan="5" class="no-data">Aucun device trouvé</td></tr>';
     return;
   }
 
@@ -70,8 +70,11 @@ function updateDevicesTable(devices) {
 
   tbody.innerHTML = devices
     .map(
-      (device) => `
-        <tr>
+      (device, idx) => `
+        <tr data-row-index="${idx}">
+            <td>
+              <input type="checkbox" class="device-checkbox" data-device-index="${idx}" />
+            </td>
             <td>${device.name || "N/A"}</td>
             <td>${device.tags?.site || "N/A"}</td>
             <td>${device.tags?.building || "N/A"}</td>
@@ -80,6 +83,27 @@ function updateDevicesTable(devices) {
     `
     )
     .join("");
+
+  // Ajoute le clic sur la ligne pour sélectionner la checkbox
+  tbody.querySelectorAll("tr").forEach((row) => {
+    row.addEventListener("click", function (e) {
+      // Ne pas déclencher si on clique directement sur la checkbox
+      if (e.target.type === "checkbox") return;
+      const checkbox = row.querySelector(".device-checkbox");
+      if (checkbox) checkbox.checked = !checkbox.checked;
+    });
+  });
+
+  // Gestion du "select all"
+  const selectAll = document.getElementById("select-all-devices");
+  if (selectAll) {
+    selectAll.checked = false;
+    selectAll.addEventListener("change", function () {
+      document
+        .querySelectorAll(".device-checkbox")
+        .forEach((cb) => (cb.checked = selectAll.checked));
+    });
+  }
 }
 
 // Fonction pour gérer le tri
@@ -107,9 +131,13 @@ function handleSort(column) {
   refreshDevices();
 }
 
+// Stocke les devices chargés pour accès rapide
+let loadedDevices = [];
+
 // Fonction pour rafraîchir les devices
 async function refreshDevices() {
   const devices = await fetchDevices();
+  loadedDevices = devices; // <-- Ajouté
   updateDevicesTable(devices);
 }
 
@@ -165,4 +193,96 @@ document.addEventListener("DOMContentLoaded", () => {
       handleSectionChange(section);
     });
   });
+
+  // Bouton Send pour envoyer l'action aux devices sélectionnés
+  const sendBtn = document.getElementById("send-action-btn");
+  if (sendBtn) {
+    sendBtn.addEventListener("click", async () => {
+      const actionForm = document.getElementById("action-form");
+      if (!actionForm) return;
+
+      // Récupère les valeurs du formulaire d'action
+      const mode = actionForm.mode?.value || actionForm.userMode?.value;
+      const safetyMode = actionForm.safetyMode.value;
+      const setValue = Number(actionForm.setValue.value);
+      const roomTemperature = Number(actionForm.roomTemperature.value);
+      const safetyValue = Number(actionForm.safetyValue.value);
+      const radioInterval = Number(actionForm.radioInterval.value);
+      const doReferenceRunNow = Number(actionForm.doReferenceRunNow.value);
+
+      let setValueMax = mode === "Valve_Position" ? 100 : 40;
+      let safetyValueMax = safetyMode === "Valve_Position" ? 100 : 40;
+
+      const finalSetValue = Math.max(0, Math.min(setValue, setValueMax));
+      const finalSafetyValue = Math.max(
+        0,
+        Math.min(safetyValue, safetyValueMax)
+      );
+
+      // Récupère les devices sélectionnés
+      const checkedBoxes = document.querySelectorAll(
+        ".device-checkbox:checked"
+      );
+      if (checkedBoxes.length === 0) {
+        alert("Sélectionnez au moins un device.");
+        return;
+      }
+
+      // Pour chaque checkbox, récupère le dev_eui
+      const payloads = {};
+      checkedBoxes.forEach((cb) => {
+        const idx = Number(cb.getAttribute("data-device-index"));
+        const device = loadedDevices[idx];
+        if (!device) return;
+        const dev_eui = device.devEui || device.dev_eui || device.devEUI;
+        if (!dev_eui) return;
+
+        payloads[dev_eui] = {
+          dev_eui,
+          confirmed: false,
+          f_port: 15,
+          object: {
+            mode,
+            safetyMode,
+            setValue: finalSetValue,
+            roomTemperature,
+            safetyValue: finalSafetyValue,
+            radioInterval,
+            doReferenceRunNow,
+          },
+        };
+      });
+
+      // Si un seul device, envoie l'objet seul, sinon un objet de json
+      let toSend;
+      const keys = Object.keys(payloads);
+      if (keys.length === 1) {
+        toSend = payloads[keys[0]];
+      } else {
+        toSend = payloads;
+      }
+
+      try {
+        const response = await fetch("/api/sendaction", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(toSend),
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          alert(
+            "Erreur lors de l'envoi : " + (error.message || response.statusText)
+          );
+          return;
+        }
+
+        const result = await response.json();
+        alert("Action envoyée avec succès !");
+        console.log("Réponse du back :", result);
+      } catch (err) {
+        alert("Erreur réseau : " + err.message);
+      }
+    });
+  }
 });
