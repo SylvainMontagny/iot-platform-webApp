@@ -61,22 +61,26 @@ router.put('/updatedevice', async (req, res) => {
 });
 
 router.post('/downlink', async (req, res) => {
-    const { dev_eui, confirmed, f_port, data } = req.body;
-
-    if (!dev_eui || !data || !Array.isArray(data)) {
+    const devices = req.body; 
+    
+    if (!Array.isArray(devices) || devices.length === 0) {
         return res.status(400).json({
             success: false,
-            message: "Requête invalide : dev_eui et data (array) sont requis",
+            message: "Requête invalide : une liste de devices est requise",
         });
     }
 
     try {
-        const id = await sendDownlink(dev_eui, data, f_port, confirmed);
-        res.json({ success: true, id });
+        const promises = devices.map(({ dev_eui, data, f_port, confirmed }) => 
+            sendDownlink(dev_eui, data, f_port, confirmed)
+        );
+        
+        // Wait for all the promises to resolve (or reject)
+        const ids = await Promise.all(promises);
+        res.json({ success: true, ids });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
 });
-
 
 module.exports = router;

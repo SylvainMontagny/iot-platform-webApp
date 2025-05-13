@@ -263,10 +263,11 @@ document.addEventListener("DOMContentLoaded", () => {
       let toSend;
       const keys = Object.keys(payloads);
       if (keys.length === 1) {
-        toSend = payloads[keys[0]];
+        toSend = [payloads[keys[0]]]; // Transforme en tableau pour simplifier le traitement côté back
       } else {
-        toSend = payloads;
+        toSend = Object.values(payloads); // envoie un tableau de périphériques
       }
+      console.log("toSend", toSend)
 
       // Envoi de l'action à l'API
       try {
