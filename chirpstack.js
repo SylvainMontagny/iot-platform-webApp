@@ -125,12 +125,12 @@ function getDeviceProfileName(deviceProfileId) {
   });
 }
 
-function sendDownlink(devEui, payloadArray) {
+function sendDownlink(devEui, payloadArray, fPort = 1, confirmed = false) {
   return new Promise((resolve, reject) => {
       const item = new device_pb.DeviceQueueItem();
       item.setDevEui(devEui);
-      item.setFPort(10);
-      item.setConfirmed(false);
+      item.setFPort(fPort);
+      item.setConfirmed(confirmed);
       item.setData(Uint8Array.from(payloadArray));
 
       const enqueueReq = new device_pb.EnqueueDeviceQueueItemRequest();
@@ -144,5 +144,6 @@ function sendDownlink(devEui, payloadArray) {
       });
   });
 }
+
 
 module.exports = { getDevices, getDeviceDetails, updatedevice, sendDownlink };

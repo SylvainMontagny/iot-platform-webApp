@@ -61,21 +61,22 @@ router.put('/updatedevice', async (req, res) => {
 });
 
 router.post('/downlink', async (req, res) => {
-    const { devEui, payload } = req.body;
+    const { dev_eui, confirmed, f_port, data } = req.body;
 
-    if (!devEui || !payload || !Array.isArray(payload)) {
+    if (!dev_eui || !data || !Array.isArray(data)) {
         return res.status(400).json({
             success: false,
-            message: "Requête invalide : devEui et payload (array) sont requis",
+            message: "Requête invalide : dev_eui et data (array) sont requis",
         });
     }
 
     try {
-        const id = await sendDownlink(devEui, payload);
+        const id = await sendDownlink(dev_eui, data, f_port, confirmed);
         res.json({ success: true, id });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
 });
+
 
 module.exports = router;
