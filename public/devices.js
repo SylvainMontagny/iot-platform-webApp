@@ -228,7 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Pour chaque checkbox, récupère le dev_eui
+      // Pour chaque checkbox, récupère le dev_eui et prépare le payload encodé
       const payloads = {};
       checkedBoxes.forEach((cb) => {
         const idx = Number(cb.getAttribute("data-device-index"));
@@ -237,19 +237,25 @@ document.addEventListener("DOMContentLoaded", () => {
         const dev_eui = device.devEui || device.dev_eui || device.devEUI;
         if (!dev_eui) return;
 
+        // Construction de l'objet à encoder
+        const objectToEncode = {
+          userMode: mode,
+          safetyMode,
+          setValue: finalSetValue,
+          roomTemperature,
+          safetyValue: finalSafetyValue,
+          radioInterval,
+          doReferenceRunNow,
+        };
+
+        // Appel de l'encodeur (port 1)
+        const encoded = encode_port_1({ data: objectToEncode });
+
         payloads[dev_eui] = {
           dev_eui,
           confirmed: false,
-          f_port: 15,
-          object: {
-            mode,
-            safetyMode,
-            setValue: finalSetValue,
-            roomTemperature,
-            safetyValue: finalSafetyValue,
-            radioInterval,
-            doReferenceRunNow,
-          },
+          f_port: 1,
+          data: encoded,
         };
       });
 
@@ -262,6 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
         toSend = payloads;
       }
 
+      // Envoi de l'action à l'API
       try {
         const response = await fetch("/api/sendaction", {
           method: "POST",
@@ -283,6 +290,9 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (err) {
         alert("Erreur réseau : " + err.message);
       }
+
+      // Affiche le JSON qui serait envoyé
+      console.log(toSend);
     });
   }
 });
