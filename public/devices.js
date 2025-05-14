@@ -644,4 +644,38 @@ document.addEventListener("DOMContentLoaded", () => {
       renderActionForm(Number(e.target.value));
     });
   }
+
+  // Charger les settings au chargement
+  fetch("/api/settings")
+    .then((res) => res.json())
+    .then((settings) => {
+      if (settings.API_TOKEN)
+        document.getElementById("api-token").value = settings.API_TOKEN;
+      if (settings.URL_SERVER)
+        document.getElementById("tenants").value = settings.URL_SERVER;
+      if (settings.APP_ID)
+        document.getElementById("application").value = settings.APP_ID;
+    });
+
+  // Sauvegarder les settings
+  document
+    .querySelector(".settings-form")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const API_TOKEN = document.getElementById("api-token").value;
+      const URL_SERVER = document.getElementById("tenants").value;
+      const APP_ID = document.getElementById("application").value;
+      const res = await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ API_TOKEN, URL_SERVER, APP_ID }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Paramètres sauvegardés !");
+        window.location.reload();
+      } else {
+        alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
+      }
+    });
 });

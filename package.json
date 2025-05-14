@@ -1,6 +1,6 @@
 {
     "name": "web-device-controller",
-    "main": "app.js",
+    "main": "main.js",
     "dependencies": {
         "@chirpstack/chirpstack-api": "^4.12.1",
         "@grpc/grpc-js": "^1.13.3",
@@ -14,11 +14,32 @@
         "web-device-controller": "file:"
     },
     "scripts": {
-        "start": "node app.js"
+        "start": "npx electron main.js",
+        "dist": "electron-builder"
     },
     "version": "1.0.0",
     "description": "A web-based device controller for managing devices.",
     "keywords": [],
     "author": "",
-    "license": "ISC"
+    "license": "ISC",
+    "devDependencies": {
+        "electron": "^36.2.0",
+        "electron-builder": "^26.0.12"
+    },
+    "build": {
+        "appId": "com.tonapp.iotplatform",
+        "files": [
+            "main.js",
+            "app.js",
+            "chirpstack.js",
+            "public/**/*",
+            "routes/**/*",
+            "node_modules/**/*",
+            "package.json"
+        ],
+        "extraResources": [
+            "settings.json"
+        ],
+        "asar": true
+    }
 }
