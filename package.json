@@ -10,8 +10,7 @@
         "express": "^4.21.1",
         "fs-extra": "^11.2.0",
         "https": "^1.0.0",
-        "socket.io": "^4.8.0",
-        "web-device-controller": "file:"
+        "socket.io": "^4.8.0"
     },
     "scripts": {
         "start": "npx electron main.js",
@@ -28,6 +27,7 @@
     },
     "build": {
         "appId": "com.tonapp.iotplatform",
+        "productName": "IoT Platform Controller",
         "files": [
             "main.js",
             "app.js",
@@ -40,6 +40,21 @@
         "extraResources": [
             "settings.json"
         ],
-        "asar": true
+        "asar": true,
+        "win": {
+            "target": [
+                "nsis"
+            ],
+            "icon": "public/favicon.ico"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true,
+            "runAfterFinish": true,
+            "installerIcon": "public/favicon.ico",
+            "uninstallerIcon": "public/favicon.ico"
+        }
     }
 }
