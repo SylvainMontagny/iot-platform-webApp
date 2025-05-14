@@ -59,7 +59,7 @@ function updateDevicesTable(devices) {
 
   if (devices.length === 0) {
     tbody.innerHTML =
-      '<tr><td colspan="5" class="no-data">Aucun device trouvé</td></tr>';
+      '<tr><td colspan="5" class="no-data">No devices found</td></tr>';
     return;
   }
 
@@ -166,7 +166,351 @@ function handleSectionChange(section) {
   refreshDevices();
 }
 
-// Ajouter les écouteurs d'événements
+// Définition des formulaires pour chaque action
+const actionForms = {
+  1: {
+    fields: [
+      {
+        label: "User Mode",
+        name: "userMode",
+        type: "select",
+        options: ["Ambient_Temperature", "Valve_Position"],
+      },
+      {
+        label: "Safety Mode",
+        name: "safetyMode",
+        type: "select",
+        options: ["Ambient_Temperature", "Valve_Position"],
+      },
+      {
+        label: "Set Value",
+        name: "setValue",
+        type: "number",
+        min: 0,
+        max: 40,
+        value: 21,
+      },
+      {
+        label: "Room Temperature",
+        name: "roomTemperature",
+        type: "number",
+        min: 0,
+        max: 40,
+        value: 20,
+      },
+      {
+        label: "Safety Value",
+        name: "safetyValue",
+        type: "number",
+        min: 0,
+        max: 40,
+        value: 19,
+      },
+      {
+        label: "Radio Interval",
+        name: "radioInterval",
+        type: "select",
+        options: [5, 10, 60, 120, 480],
+      },
+      {
+        label: "Do Reference Run Now",
+        name: "doReferenceRunNow",
+        type: "select",
+        options: [
+          { label: "No", value: 0 },
+          { label: "Yes", value: 1 },
+        ],
+      },
+    ],
+  },
+  2: { fields: [] },
+  3: {
+    fields: [
+      {
+        label: "Motor Operating Range",
+        name: "motor_operating_range",
+        type: "select",
+        options: [
+          "2.56048",
+          "0.624",
+          "0.832",
+          "1.040",
+          "1.248",
+          "1.456",
+          "1.664",
+          "1.872",
+          "2.080",
+          "2.288",
+          "2.496",
+        ],
+      },
+    ],
+  },
+  4: {
+    fields: [
+      {
+        label: "Spreading Factor",
+        name: "spreading_factor",
+        type: "select",
+        options: ["SF7", "SF8"],
+      },
+    ],
+  },
+  5: {
+    fields: [
+      {
+        label: "Opening Point Reset",
+        name: "opening_point_reset",
+        type: "select",
+        options: [
+          { label: "No", value: false },
+          { label: "Yes", value: true },
+        ],
+      },
+      {
+        label: "Hot Water Availability",
+        name: "hot_water_availability",
+        type: "select",
+        options: ["Use_time_of_year", "OFF", "ON"],
+      },
+      {
+        label: "Slow Harvesting",
+        name: "slow_harvesting",
+        type: "select",
+        options: [
+          "DEFAULT",
+          "DO_OPD_AND_SH",
+          "DO_OPD_ONLY",
+          "DISABLE_OPD_AND_SH",
+        ],
+      },
+      {
+        label: "Max Flow Sensor Raw",
+        name: "max_flow_sensor_raw",
+        type: "number",
+        min: 0,
+        max: 33,
+        value: 27,
+      },
+    ],
+  },
+  6: {
+    fields: [
+      {
+        label: "TDD Action",
+        name: "tdd_action",
+        type: "select",
+        options: [
+          "No_Action",
+          "Close_to_0%_for_30_minutes",
+          "Close_to_0%_for_60_minutes",
+        ],
+      },
+      {
+        label: "TDD Beep",
+        name: "tdd_beep",
+        type: "select",
+        options: [
+          { label: "No", value: false },
+          { label: "Yes", value: true },
+        ],
+      },
+      {
+        label: "TDD Period",
+        name: "tdd_period",
+        type: "select",
+        options: [1, 2],
+      },
+    ],
+  },
+  7: {
+    fields: [
+      { label: "kP", name: "kP", type: "number", min: 0, max: 255, value: 20 },
+      {
+        label: "kI",
+        name: "kI",
+        type: "number",
+        min: 0,
+        max: 5.1,
+        step: 0.01,
+        value: 1.5,
+      },
+      {
+        label: "kD",
+        name: "kD",
+        type: "number",
+        min: 0,
+        max: 51,
+        step: 0.1,
+        value: 21,
+      },
+      {
+        label: "Closed Percent",
+        name: "Closed_Percent",
+        type: "number",
+        min: 0,
+        max: 100,
+        value: 32,
+      },
+      {
+        label: "kD when closed",
+        name: "kD_when_closed",
+        type: "number",
+        min: 0,
+        max: 51,
+        step: 0.1,
+        value: 14,
+      },
+      {
+        label: "Offset Percent",
+        name: "Offset_Percent",
+        type: "number",
+        min: 0,
+        max: 100,
+        value: 42,
+      },
+    ],
+  },
+  8: {
+    fields: [
+      {
+        label: "Flow Raw Value Offset",
+        name: "Flow_Raw_Value_Offset",
+        type: "number",
+        min: -32,
+        max: 31.75,
+        step: 0.01,
+        value: 2.5,
+      },
+    ],
+  },
+  9: {
+    fields: [
+      {
+        label: "External Temperature Sensor Expiry (min)",
+        name: "External_temperature_sensor_expiry_minutes",
+        type: "number",
+        min: 0,
+        max: 1275,
+        value: 5,
+      },
+    ],
+  },
+  10: {
+    fields: [
+      {
+        label: "Room Temperature",
+        name: "Room_Temperature",
+        type: "number",
+        min: 0,
+        max: 40,
+        value: 22,
+      },
+    ],
+  },
+  11: {
+    fields: [
+      {
+        label: "Beep",
+        name: "Beep",
+        type: "number",
+        min: 0,
+        max: 255,
+        value: 3,
+      },
+    ],
+  },
+  15: {
+    fields: [
+      {
+        label: "Device will operate if 6 week reference run fails",
+        name: "device_will_operate_if_6_week_reference_run_fails",
+        type: "select",
+        options: [
+          { label: "No", value: false },
+          { label: "Yes", value: true },
+        ],
+      },
+      {
+        label: "Do recalibration now",
+        name: "do_recalibation_now",
+        type: "select",
+        options: [
+          { label: "No", value: false },
+          { label: "Yes", value: true },
+        ],
+      },
+      {
+        label: "Turn off device",
+        name: "turn_off_device",
+        type: "select",
+        options: [
+          { label: "No", value: false },
+          { label: "Yes", value: true },
+        ],
+      },
+    ],
+  },
+};
+
+// Génère dynamiquement le formulaire d'action
+function renderActionForm(port) {
+  const form = document.getElementById("action-form");
+  form.innerHTML = "";
+  const config = actionForms[port];
+  if (!config || !config.fields.length) {
+    form.innerHTML =
+      "<div class='action-content'>No action form available for this port</div>";
+    return;
+  }
+  let row = null;
+  config.fields.forEach((field, idx) => {
+    // Nouvelle ligne tous les 3 champs
+    if (idx % 3 === 0) {
+      row = document.createElement("div");
+      row.className = "form-row";
+      form.appendChild(row);
+    }
+    const group = document.createElement("div");
+    group.className = "form-group";
+    const label = document.createElement("label");
+    label.htmlFor = field.name;
+    label.textContent = field.label;
+    group.appendChild(label);
+
+    let input;
+    if (field.type === "select") {
+      input = document.createElement("select");
+      input.name = field.name;
+      input.id = field.name;
+      (field.options || []).forEach((opt) => {
+        let option = document.createElement("option");
+        if (typeof opt === "object") {
+          option.value = opt.value;
+          option.textContent = opt.label;
+        } else {
+          option.value = opt;
+          option.textContent = opt;
+        }
+        input.appendChild(option);
+      });
+    } else {
+      input = document.createElement("input");
+      input.type = field.type;
+      input.name = field.name;
+      input.id = field.name;
+      if (field.value !== undefined) input.value = field.value;
+      if (field.min !== undefined) input.min = field.min;
+      if (field.max !== undefined) input.max = field.max;
+      if (field.step !== undefined) input.step = field.step;
+      input.required = true;
+    }
+    group.appendChild(input);
+    row.appendChild(group);
+  });
+}
+
+// Initialisation du formulaire d'action au chargement
 document.addEventListener("DOMContentLoaded", () => {
   // Rafraîchir les devices au chargement de la page
   refreshDevices();
@@ -198,26 +542,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const sendBtn = document.getElementById("send-action-btn");
   if (sendBtn) {
     sendBtn.addEventListener("click", async () => {
+      const actionTypeSelect = document.getElementById("action-type-select");
+      const port = Number(actionTypeSelect.value);
       const actionForm = document.getElementById("action-form");
       if (!actionForm) return;
 
-      // Récupère les valeurs du formulaire d'action
-      const mode = actionForm.mode?.value || actionForm.userMode?.value;
-      const safetyMode = actionForm.safetyMode.value;
-      const setValue = Number(actionForm.setValue.value);
-      const roomTemperature = Number(actionForm.roomTemperature.value);
-      const safetyValue = Number(actionForm.safetyValue.value);
-      const radioInterval = Number(actionForm.radioInterval.value);
-      const doReferenceRunNow = Number(actionForm.doReferenceRunNow.value);
-
-      let setValueMax = mode === "Valve_Position" ? 100 : 40;
-      let safetyValueMax = safetyMode === "Valve_Position" ? 100 : 40;
-
-      const finalSetValue = Math.max(0, Math.min(setValue, setValueMax));
-      const finalSafetyValue = Math.max(
-        0,
-        Math.min(safetyValue, safetyValueMax)
-      );
+      // Récupère les valeurs du formulaire dynamiquement
+      const formData = {};
+      Array.from(actionForm.elements).forEach((el) => {
+        if (!el.name) return;
+        if (el.type === "number") {
+          formData[el.name] = Number(el.value);
+        } else if (el.type === "select-one") {
+          // Pour les booléens
+          if (el.value === "true") formData[el.name] = true;
+          else if (el.value === "false") formData[el.name] = false;
+          else if (!isNaN(Number(el.value)))
+            formData[el.name] = Number(el.value);
+          else formData[el.name] = el.value;
+        } else {
+          formData[el.name] = el.value;
+        }
+      });
 
       // Récupère les devices sélectionnés
       const checkedBoxes = document.querySelectorAll(
@@ -228,7 +574,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Pour chaque checkbox, récupère le dev_eui et prépare le payload encodé
+      // Pour chaque checkbox, prépare le payload encodé
       const payloads = {};
       checkedBoxes.forEach((cb) => {
         const idx = Number(cb.getAttribute("data-device-index"));
@@ -237,37 +583,33 @@ document.addEventListener("DOMContentLoaded", () => {
         const dev_eui = device.devEui || device.dev_eui || device.devEUI;
         if (!dev_eui) return;
 
-        // Construction de l'objet à encoder
-        const objectToEncode = {
-          userMode: mode,
-          safetyMode,
-          setValue: finalSetValue,
-          roomTemperature,
-          safetyValue: finalSafetyValue,
-          radioInterval,
-          doReferenceRunNow,
-        };
-
-        // Appel de l'encodeur (port 1)
-        const encoded = encode_port_1({ data: objectToEncode });
+        // Appel de l'encodeur dynamique
+        let encoded;
+        try {
+          encoded = window[`encode_port_${port}`]
+            ? window[`encode_port_${port}`]({ data: formData })
+            : [];
+        } catch (e) {
+          alert("Erreur d'encodage : " + e.message);
+          return;
+        }
 
         payloads[dev_eui] = {
           dev_eui,
           confirmed: false,
-          f_port: 1,
+          f_port: port,
           data: encoded,
         };
       });
 
-      // Si un seul device, envoie l'objet seul, sinon un objet de json
       let toSend;
       const keys = Object.keys(payloads);
       if (keys.length === 1) {
-        toSend = [payloads[keys[0]]]; // Transforme en tableau pour simplifier le traitement côté back
+        toSend = [payloads[keys[0]]];
       } else {
-        toSend = Object.values(payloads); // envoie un tableau de périphériques
+        toSend = Object.values(payloads);
       }
-      console.log("toSend", toSend)
+      console.log("toSend", toSend);
 
       // Envoi de l'action à l'API
       try {
@@ -291,9 +633,15 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (err) {
         alert("Erreur réseau : " + err.message);
       }
+      console.log("Form data:", formData);
+    });
+  }
 
-      // Affiche le JSON qui serait envoyé
-      console.log(toSend);
+  const actionTypeSelect = document.getElementById("action-type-select");
+  if (actionTypeSelect) {
+    renderActionForm(Number(actionTypeSelect.value));
+    actionTypeSelect.addEventListener("change", (e) => {
+      renderActionForm(Number(e.target.value));
     });
   }
 });

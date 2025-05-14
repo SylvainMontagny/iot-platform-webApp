@@ -94,7 +94,7 @@ function encode_port_2() {
 }
 function encode_port_3(input) {
   let bytes = [0];
-  let range = input.data.motor_operating_range;
+  let range = String(input.data.motor_operating_range);
   switch (range) {
     case "2.56048":
       bytes[0] = 0;
