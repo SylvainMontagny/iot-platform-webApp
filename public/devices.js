@@ -665,17 +665,43 @@ document.addEventListener("DOMContentLoaded", () => {
       const API_TOKEN = document.getElementById("api-token").value;
       const URL_SERVER = document.getElementById("tenants").value;
       const APP_ID = document.getElementById("application").value;
-      const res = await fetch("/api/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ API_TOKEN, URL_SERVER, APP_ID }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert("Paramètres sauvegardés !");
-        window.location.reload();
-      } else {
-        alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
+
+      try {
+        const res = await fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ API_TOKEN, URL_SERVER, APP_ID }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          // Afficher le message à côté du bouton Save
+          const msgDiv = document.querySelector(".settings-message");
+          if (msgDiv) {
+            msgDiv.textContent = "Settings saved successfully!";
+            msgDiv.style.color = "#2ecc40";
+            // Efface le message après 3 secondes
+            setTimeout(() => {
+              msgDiv.textContent = "";
+            }, 3000);
+          }
+
+          const inputs = document.querySelectorAll(".settings-form input");
+          inputs.forEach((input) => {
+            input.classList.add("saved-input");
+            setTimeout(() => {
+              input.classList.remove("saved-input");
+            }, 1000);
+          });
+
+          refreshDevices();
+        } else {
+          alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
+        }
+      } catch (error) {
+        console.error("Erreur lors de la sauvegarde des paramètres:", error);
+        alert("Erreur de connexion. Veuillez réessayer.");
       }
     });
 });

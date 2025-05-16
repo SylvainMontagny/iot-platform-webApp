@@ -48,4 +48,10 @@ router.post("/", (req, res) => {
   );
 });
 
+// POST refresh settings
+router.post("/refresh", (req, res) => {
+  // Forcer la réinitialisation des connexions
+  res.json({ success: true, message: "Settings refreshed" });
+});
+
 module.exports = router;

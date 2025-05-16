@@ -400,7 +400,6 @@ h2 {
   border-color: #0f6cbd;
 }
 
-/* Style du select à côté d'Actions */
 #action-type-select {
   padding: 0.5rem 1.5rem 0.5rem 1rem;
   border: 1px solid #ced4da;
@@ -417,4 +416,18 @@ h2 {
   transition: border-color 0.2s;
   margin-left: 0.5rem;
   margin-bottom: 1.5rem;
+}
+
+.saved-input {
+  background-color: rgba(0, 255, 0, 0.1);
+  transition: background-color 1s;
+}
+
+.settings-message {
+  display: inline-block;
+  vertical-align: middle;
+  color: #2ecc40;
+  font-weight: 500;
+  font-size: 1rem;
+  margin-left: 1rem;
 }
