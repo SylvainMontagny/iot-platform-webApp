@@ -1,135 +1,123 @@
-# web-device-controller
+# IoT Platform Web Device Controller
 
-**web-device-controller** is a Node.js application that communicates with a ChirpStack server using gRPC to fetch information about LoRaWAN devices.
+A web-based device controller for managing LoRaWAN devices via ChirpStack, built with Electron and Node.js.
 
-## Requirements
+---
 
-- [Docker](https://www.docker.com/)
-- [Node.js](https://nodejs.org/)
-- [ChirpStack](https://www.chirpstack.io/)
+## Features
+
+- Device management interface (list, filter, update)
+- ChirpStack integration (gRPC)
+- Real-time device actions and downlinks
+- Settings management (API token, server, application)
+- Cross-platform desktop packaging (Windows)
+
+---
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18+ recommended)
+- [npm](https://www.npmjs.com/)
+- [Git](https://git-scm.com/) (for cloning the repository)
+- [Docker](https://www.docker.com/) (optional, for ChirpStack server)
+
+---
 
 ## Installation
 
-### 1. Clone the repository
+1. **Clone the repository**
 
-```bash
-git clone https://github.com/elias-qzo/web-device-controller
-cd web-device-controller
-```
+   ```bash
+   git clone https://github.com/your-username/iot-platform-webApp.git
+   cd iot-platform-webApp
+   ```
 
-### 2. Setup environment
-Create a .env file from the example:
-```bash
-cp .env.example .env
-```
-Fill in your ChirpStack server address and API token.
+2. **Install dependencies**
 
-2. Start the Webapp container
-```shell
-cd web-device-controller
-docker compose up -d --build
-```
+   ```bash
+   npm install
+   ```
 
-3. Stop the containers
-```shell
-docker compose down
-```
+3. **Configure settings**
+
+   - Copy the example environment file and edit it:
+
+     ```bash
+     cp .env.example .env
+     ```
+
+   - Fill in your ChirpStack `API_TOKEN`, `URL_SERVER`, and `APP_ID` in `.env`.
+
+4. **Start the app in development mode**
+
+   ```bash
+   npm start
+   ```
+
+   The Electron app will open and the Express server will run on [http://localhost:4050](http://localhost:4050).
+
+---
 
 ## Usage
 
-### 3. List Devices
-This project includes a function to list LoRaWAN devices associated with a given applicationId in ChirpStack.
+- Use the **Settings** section to configure your ChirpStack server, API token, and application ID.
+- The **Devices** section lists all devices for the selected application.
+- Use the **Actions** section to send downlinks or perform operations on selected devices.
 
-### Endpoint
+---
 
-`GET http://localhost:3000/api/getdevices`
+## Packaging the Application
 
-### Response
+If you want to distribute the app or repackage it after making changes, follow these steps:
 
-```json
-{
-  "success": true,
-  "devices": [
-    {
-      "devEui": "a1b2c3d4e5f67890",
-      "name": "device-01",
-      "description": "Temperature sensor",
-      "deviceProfileId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-      "deviceProfileName": "temp-sensor-profile",
-      "lastSeen": "2023-05-01T12:00:00Z",
-      "deviceStatus": "active"
-      "tags": {
-                "building": "8D",
-                "room": "121",
-                "site": "bourget"
-            }
-    }
-  ]
-}
-```
+1. **(Optional) Clean previous builds**
 
-### 3. Get Device Details
-This project includes a function to retrieve the details of a single LoRaWAN device based on its devEui.
+   On Windows PowerShell:
 
-### Endpoint
+   ```powershell
+   Remove-Item -Recurse -Force node_modules ; Remove-Item -Recurse -Force dist ; Remove-Item -Force package-lock.json
+   npm install
+   ```
 
-`GET http://localhost:3000/api/getdevice/:devEui`
+2. **Build the application**
 
-### Path Parameters
+   ```bash
+   npm run dist
+   ```
 
-- `devEui` (string): The unique identifier of the device you want to retrieve details for.
+   This will generate an installer (e.g., `web-device-controller-Setup-1.0.0.exe`) in the `dist` folder.
 
-### Response
+3. **Distribute**
 
-```json
-{
-  "success": true,
-  "device": {
-      "devEui": "a1b2c3d4e5f67890",
-      "name": "device-01",
-      "description": "Temperature sensor",
-      "deviceProfileId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-      "deviceProfileName": "temp-sensor-profile",
-      "lastSeen": "2023-05-01T12:00:00Z",
-      "deviceStatus": "active"
-      "tags": {
-                "building": "8D",
-                "room": "121",
-                "site": "bourget"
-            }
-    }
-```
+   - Share the generated installer with your users.
+   - Or upload it to your GitHub Releases page.
 
-### 3. Get Device Details
-You can filter the list of devices by their profile name (type).
+**Note:**  
+You can customize packaging options (icons, shortcuts, etc.) in the `package.json` under the `"build"` section.
 
-### Endpoint
+For more details, see the [electron-builder documentation](https://www.electron.build/).
 
-`GET http://localhost:3000/api/getdevices/type/:type`
+---
 
-### Path Parameters
+## Updating Settings After Packaging
 
-- `type` (string): The type of the device (e.g., temp-sensor-profile)
+- Open the app and go to the **Settings** section.
+- Change your API token, server, or application ID as needed.
+- Click **Save**. The new settings will be used immediately.
 
-### Update Device
+---
 
-This function allows you to update an existing LoRaWAN device's information, including its name, description, and device profile ID.
+## Development Notes
 
-### Endpoint
+- Main Electron entry: [`main.js`](main.js)
+- Express server and API: [`app.js`](app.js), [`routes/`](routes/)
+- Frontend: [`public/`](public/)
+- Device logic: [`chirpstack.js`](chirpstack.js)
 
-`PUT http://localhost:3000/api/updatedevice`
+---
 
-### Request Body
+## License
 
-```json
-{
-    "devEui": "3e632b42a3f6e24d",
-    "name": "updated-name",
-    "description": "new description",
-    "deviceProfileId": "xxx-xxx-xxx-xxx-xxx",
-    "tags": {
-        "building": "9C",
-        "room": "101",
-        "site": "montreal"
-    }
-}
+ISC
+
+---
