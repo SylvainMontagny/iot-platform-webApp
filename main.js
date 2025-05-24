@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow} = require("electron");
 const path = require("path");
 const express = require("express");
 const cors = require("cors");

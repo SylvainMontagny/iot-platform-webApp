@@ -48,6 +48,11 @@ body {
   position: relative;
 }
 
+.nav-settings-section {
+  margin-bottom: 1.5rem;
+  position: bottom;
+}
+
 .nav-section.active .nav-section-title {
   color: #0f6cbd;
   font-weight: 600;
@@ -153,6 +158,8 @@ h1 {
 /* Section styles */
 .settings-section,
 .action-section,
+.add-device-section,
+.device-settings-section,
 .device-section {
   background-color: #f8f9fa;
   padding: 1.5rem;
@@ -368,19 +375,23 @@ h2 {
 }
 
 /* Action section styles */
-.action-form .form-row {
+.action-form .form-row,
+.add-device-form .form-row {
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
 }
 
 .action-form .form-group,
+.add-device-form .form-group,
 .settings-form .form-group {
   flex: 1 1 0;
   min-width: 0;
   max-width: calc(33.333% - 0.67rem);
 }
 .action-form select,
+.tenant-select select,
+.add-device-section select,
 .settings-form select {
   padding: 0.5rem 1rem;
   border: 1px solid #ced4da;
@@ -393,6 +404,15 @@ h2 {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+}
+
+.tenant-select select {
+  padding: 0.5rem 1.5rem 0.5rem 1rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #ced4da;
+  width : 100%;
+  border-radius: 4px;
+  background: #fff url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%230f6cbd' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 0.75rem center/1rem 0.7rem;
 }
 
 .action-form select:focus,

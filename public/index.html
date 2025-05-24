@@ -11,6 +11,16 @@
       <nav class="sidebar">
         <div class="logo">
           <h2>Web Device Controller</h2>
+          <div class="tenant-select">
+            <span class="tenant-select-title">Tenant</span>
+          <select name="tenant" id="tenant">
+            <!-- Empty for now -->
+          </select>
+          <span class="tenant-select-title">Application</span>
+          <select name="application" id="application">
+            <!-- Empty for now -->
+          </select>
+          </div>
         </div>
         <ul class="nav-links">
           <li class="nav-section">
@@ -22,7 +32,9 @@
           <li class="nav-section">
             <span class="nav-section-title">Provisioning</span>
             <ul class="submenu">
-              <!-- Empty for now -->
+              <li>
+              <a href="#add-device">Add device</a>
+              </li>
             </ul>
           </li>
           <li class="nav-section active">
@@ -34,6 +46,9 @@
               <li><a href="#temperature">Temperature Sensor</a></li>
             </ul>
           </li>
+          <li class = "nav-settings-section">
+              <a href="#settings">Settings</a>
+          </li>
         </ul>
       </nav>
       <main class="main-content">
@@ -41,54 +56,77 @@
           <h1>Thermostatic Valve Device Management</h1>
           <div class="page-sections">
             <!-- Settings Section -->
-            <section class="settings-section">
+            <section class="settings-section" style="display: none;">
               <h2>Settings</h2>
               <form class="settings-form">
                 <div class="form-row">
                   <div class="form-group">
-                    <label for="tenants">Network Server</label>
-                    <input type="text" id="tenants" name="tenants" />
+                    <label for="network-server">Network Server</label>
+                    <input type="text" id="network-server" name="network-server" />
                   </div>
                   <div class="form-group">
                     <label for="api-token">API Token</label>
                     <input type="password" id="api-token" name="api-token" />
                   </div>
-                  <div class="form-group">
-                    <label for="application">Application</label>
-                    <input type="text" id="application" name="application" />
-                  </div>
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="frost-protection">Frost Protection Temp</label>
-                    <input
-                      type="number"
-                      id="frost-protection"
-                      name="frost-protection"
-                      value="6"
-                    />
-                  </div>
-                  <div class="form-group">
-                    <label for="occupied-temp">Occupied Temp</label>
-                    <input
-                      type="number"
-                      id="occupied-temp"
-                      name="occupied-temp"
-                      value="19"
-                    />
-                  </div>
-                  <div class="form-group">
-                    <label for="comfort-temp">Comfort Temp</label>
-                    <input
-                      type="number"
-                      id="comfort-temp"
-                      name="comfort-temp"
-                      value="21"
-                    />
-                  </div>
                 </div>
                 <button type="submit" class="save-button">Save</button>
                 <div class="settings-message" style="margin-left: 1rem"></div>
+              </form>
+            </section>
+
+             <!-- Device Settings Section -->
+            <section class="device-settings-section">
+              <h2>Device settings</h2>
+              <form class="device-settings-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="frost-protection">Frost Protection Temp</label>
+                    <input type="number" id="frost-protection" name="frost-protection" value="6" />
+                  </div>
+                  <div class="form-group">
+                    <label for="occupied-temp">Occupied Temp</label>
+                    <input type="number" id="occupied-temp" name="occupied-temp" value="19" />
+                  </div>
+                  <div class="form-group">
+                    <label for="comfort-temp">Comfort Temp</label>
+                    <input type="number" id="comfort-temp" name="comfort-temp" value="21" />
+                  </div>
+                </div>
+              </form>
+            </section>
+
+            <!-- Add Device Section -->
+            <section class="add-device-section" style="display: none;">
+              <h2>Device credentials</h2>
+              <form class="add-device-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="device-name">Device Name</label>
+                    <input type="text" id="device-name" name="device-name" placeholder="Device Name" />
+                  </div>
+                  <div class="form-group">
+                    <label for="device-profile">Device Profile</label>
+                    <select name="device-profile" id="device-profile"></select>
+                  </div>
+                </div>  
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="device-eui">Device EUI</label>
+                    <input type="text" id="device-eui" name="device-eui" maxlength="16" pattern="[A-Fa-f0-9]{16}" title="Entrez 16 caractères hexadécimaux" placeholder="Device EUI" />
+                  </div>
+                  <div class="form-group">
+                    <label for="device-app-eui">Device AppEUI</label>
+                    <input type="text" id="device-app-eui" name="device-app-eui" maxlength="16" pattern="[A-Fa-f0-9]{16}" placeholder="Device AppEUI" title="Entrez 16 caractères hexadécimaux"/>
+                  </div>
+                  <div class="form-group">
+                    <label for="device-app-key">Device App Key</label>
+                    <input type="text" id="device-app-key" name="device-app-key" maxlength="32" pattern="[A-Fa-f0-9]{32}" placeholder="Device App Key" title="Entrez 32 caractères hexadécimaux"/>
+                  </div>
+                </div>
+                <div class="form-row">   
+                  <!-- Empty for now -->
+                </div>
+                <button type="submit" class="save-button">Add Device</button>
               </form>
             </section>
 

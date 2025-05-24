@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
 
-const { getDevices, getDeviceDetails, updatedevice, sendDownlink } = require('../chirpstack');
+const { getDevices, getDeviceDetails, updatedevice, listDeviceProfiles, listTenants, listApplication, adddevice, sendDownlink } = require('../chirpstack');
 
 // Get all devices
 router.get('/getdevices', async (req, res) => {
@@ -54,6 +55,61 @@ router.put('/updatedevice', async (req, res) => {
 
     try {
         const result = await updatedevice(deviceData);
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// liste les device profiles
+router.get('/getdeviceprofile', async (req, res) => {
+    try {
+        const deviceProfiles = await listDeviceProfiles();
+        if (!deviceProfiles) {
+            return res.status(404).json({ success: false, message: "Device not found" });
+        }
+        res.json({ success: true, deviceProfiles: deviceProfiles });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// liste les tenants
+router.get('/gettenants', async (req, res) => {
+    try {
+        const tenants = await listTenants();
+        if (!tenants) {
+            return res.status(404).json({ success: false, message: "Device not found" });
+        }
+        res.json({ success: true, tenants: tenants });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// liste les applications
+router.get('/getapplications', async (req, res) => {
+    try {
+        const applications = await listApplication();
+        if (!applications) {
+            return res.status(404).json({ success: false, message: "Device not found" });
+        }
+        res.json({ success: true, applications: applications });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// add a device
+router.post('/adddevice', async (req, res) => {
+    const deviceData = req.body;
+
+    if (!deviceData.deviceEUI) {
+        return res.status(400).json({ success: false, message: "Missing devEui in request body" });
+    }
+
+    try {
+        const result = await adddevice(deviceData);
         res.json(result);
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });

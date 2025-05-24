@@ -1,5 +1,7 @@
+
+
 // État du type de device actif
-let currentDeviceType = "usmb-valve"; // Par défaut, on affiche les valves
+let currentDeviceType = "micropelt-mlr003"; // Par défaut, on affiche les valves
 
 // Fonction pour récupérer les devices depuis l'API
 async function fetchDevices() {
@@ -140,26 +142,68 @@ async function refreshDevices() {
   loadedDevices = devices; // <-- Ajouté
   updateDevicesTable(devices);
 }
-
+// Fonctions pour gérer l'affichage du changement de section
+function ControlDisplay() {
+  document.querySelectorAll(".page-sections section").forEach((section) => {
+    let isControlRelated =  section.classList.contains("device-settings-section") || 
+                            section.classList.contains("device-section") || 
+                            section.classList.contains("action-section") ;
+    !isControlRelated ? section.style.display = "none" : section.style.display = "block";
+  });
+}
+function SettingsDisplay() {
+  document.querySelectorAll(".page-sections section").forEach((section) => {
+    let isSettingsRelated = section.classList.contains("settings-section");
+  !isSettingsRelated ? section.style.display = "none" : section.style.display = "block";
+  });
+}
+function ProvisionningDisplay() {
+  document.querySelectorAll(".page-sections section").forEach((section) => {
+    let isProvisionningRelated = section.classList.contains("add-device-section");
+    !isProvisionningRelated ? section.style.display = "none" : section.style.display = "block";
+  });
+}
 // Fonction pour gérer le changement de section
 function handleSectionChange(section) {
   // Mettre à jour le type de device actif
   currentDeviceType =
-    section === "thermostat" ? "usmb-valve" : "temperature-sensor";
+    section === "thermostat" ? "micropelt-mlr003" : "temperature-sensor";
 
-  // Mettre à jour la classe active dans le menu
+  // Mettre à jour la classe active dans le menu pour les liens
   document.querySelectorAll(".nav-links a").forEach((link) => {
     link.classList.remove("active");
   });
   document.querySelector(`a[href="#${section}"]`).classList.add("active");
 
+  // Mettre à jour la classe active dans le menu pour les listes
+  document.querySelectorAll(".nav-links li").forEach((list) => {
+      list.classList.remove("active");
+  });
+  document.querySelector(`a[href="#${section}"]`).parentElement.parentElement.parentElement.classList.add("active");
+
   // Mettre à jour le titre de la page
   const title = document.querySelector("h1");
   if (title) {
-    title.textContent =
-      section === "thermostat"
-        ? "Thermostatic Valve Device Management"
-        : "Temperature Sensor Device Management";
+    switch (section) {
+      case "thermostat":
+        title.textContent = "Thermostatic Valve Device Management";
+        ControlDisplay();
+        break;
+      case "temperature":
+        title.textContent = "Temperature Sensor Device Management";
+        ControlDisplay();
+        break;
+      case "add-device":
+        title.textContent = "Add a new device";
+        ProvisionningDisplay();
+        break;
+      case "settings":
+        title.textContent = "Settings";
+        SettingsDisplay();
+        break;
+      default:
+        title.textContent = "Device Management";
+    }
   }
 
   // Rafraîchir les devices avec le nouveau type
@@ -510,10 +554,142 @@ function renderActionForm(port) {
   });
 }
 
+async function setTenantOptions() {
+  const res = await fetch("/api/gettenants");
+  const data = await res.json();
+  if (!data.success) {
+    console.error("Erreur lors de la récupération des tenants:", data.message);
+    return;
+  }
+  const tenants = data.tenants;
+  const tenantSelect = document.querySelector(".tenant-select #tenant");
+  tenantSelect.innerHTML = "";
+  tenants.forEach((tenant) => {
+    const option = document.createElement("option");
+    option.value = tenant.id;
+    option.textContent = tenant.name;
+    tenantSelect.appendChild(option);
+  });
+  tenantSelect.dispatchEvent(new Event("change"));
+}
+
+async function setApplicationOptions() {
+  const res = await fetch("/api/getapplications");
+  const data = await res.json();
+  if (!data.success) {
+    console.error("Erreur lors de la récupération des applications:", data.message);
+    return;
+  }
+  const applicatons = data.applications;
+  const applicationSelect = document.querySelector(".tenant-select #application");
+  applicationSelect.innerHTML = "";
+  applicatons.forEach((app) => {
+    const option = document.createElement("option");
+    option.value = app.id;
+    option.textContent = app.name;
+    applicationSelect.appendChild(option);
+  });
+  applicationSelect.dispatchEvent(new Event("change"));
+}
+
+async function setDeviceProfileOptions() {
+  const res = await fetch("/api/getdeviceprofile");
+  const data = await res.json();
+  if (!data.success) {
+    console.error("Erreur lors de la récupération des devices profiles:", data.message);
+    return;
+  }
+  const deviceProfiles = data.deviceProfiles;
+  const deviceProfileSelect = document.querySelector(".add-device-section #device-profile");
+  deviceProfileSelect.innerHTML = "";
+  deviceProfiles.forEach((profile) => {
+    const option = document.createElement("option");
+    option.value = profile.id;
+    option.textContent = profile.name;
+    deviceProfileSelect.appendChild(option);
+  });
+  deviceProfileSelect.dispatchEvent(new Event("change"));
+}
+
+async function loadSettings() {
+  let settings = {};
+  try {
+    const res = await fetch("/api/settings", { method: "GET" });
+    settings = await res.json();
+    if (!settings) {
+      throw new Error("Settings not found");
+    }
+    return {
+      server: settings.URL_SERVER,
+      apiToken: settings.API_TOKEN,
+      tenantId: settings.TENANT_ID,
+      applicationId: settings.APP_ID,
+    };
+  } catch {}
+}
+
 // Initialisation du formulaire d'action au chargement
 document.addEventListener("DOMContentLoaded", () => {
   // Rafraîchir les devices au chargement de la page
   refreshDevices();
+
+  //Ajouter l'écouteur d'événement pour la selection du tenant
+  const tenantSelect = document.querySelector(".tenant-select #tenant");
+  tenantSelect.addEventListener("change", async (e) => {
+      const { server, apiToken, tenantId, applicationId } = await loadSettings();
+      const API_TOKEN = apiToken;
+      const URL_SERVER = server;
+      const TENANT_ID = e.target.value;
+      const APP_ID = applicationId;
+
+      try {
+        const res = await fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ API_TOKEN, URL_SERVER, TENANT_ID, APP_ID }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          refreshDevices();
+          setApplicationOptions();
+          setDeviceProfileOptions();
+        } else {
+          alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
+        }
+      } catch (error) {
+        console.error("Erreur lors de la sauvegarde des paramètres:", error);
+        alert("Erreur de connexion. Veuillez réessayer.");
+      }
+  });
+
+  //Ajouter l'écouteur d'événement pour la selection de l'application
+  const appSelect = document.querySelector(".tenant-select #application");
+  appSelect.addEventListener("change", async (e) => {
+    const { server, apiToken, tenantId, applicationId } = await loadSettings();
+      const API_TOKEN = apiToken;
+      const URL_SERVER = server;
+      const TENANT_ID = tenantId;
+      const APP_ID = e.target.value;
+
+      try {
+        const res = await fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ API_TOKEN, URL_SERVER, TENANT_ID, APP_ID }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          refreshDevices();
+        } else {
+          alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
+        }
+      } catch (error) {
+        console.error("Erreur lors de la sauvegarde des paramètres:", error);
+        alert("Erreur de connexion. Veuillez réessayer.");
+      }
+  });
 
   // Ajouter l'écouteur d'événement pour le bouton de rafraîchissement
   const refreshButton = document.querySelector(".refresh-button");
@@ -645,16 +821,62 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Charger les settings au chargement
   fetch("/api/settings")
-    .then((res) => res.json())
-    .then((settings) => {
-      if (settings.API_TOKEN)
-        document.getElementById("api-token").value = settings.API_TOKEN;
-      if (settings.URL_SERVER)
-        document.getElementById("tenants").value = settings.URL_SERVER;
-      if (settings.APP_ID)
-        document.getElementById("application").value = settings.APP_ID;
+        .then((res) => res.json())
+        .then((settings) => {
+          if (settings.API_TOKEN)
+            document.querySelector(".settings-section #api-token").value = settings.API_TOKEN;
+          if (settings.URL_SERVER)
+            document.querySelector(".settings-section #network-server").value = settings.URL_SERVER;
+          setTenantOptions()
+          .then(() => {
+            setDeviceProfileOptions();
+            setApplicationOptions()
+            .then(() => {
+            
+              // Charger les settings au chargement
+              fetch("/api/settings")
+                .then((res) => res.json())
+                .then((settings) => {
+                  if (settings.TENANT_ID)
+                    document.querySelector(".tenant-select #tenant").value = settings.TENANT_ID;
+                  if (settings.APP_ID)
+                    document.querySelector(".tenant-select > #application").value = settings.APP_ID;
+                });
+              });
+          });
+        });
+  
+  // Ajouter un device manuellement
+  document
+    .querySelector(".add-device-form")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const deviceName = document.getElementById("device-name")?.value;
+      const deviceEUI = document.getElementById("device-eui")?.value;
+      const deviceAppKey = document.getElementById("device-app-key")?.value;
+      const deviceAppEUI = document.getElementById("device-app-eui")?.value;
+      const deviceprofile = document.getElementById("device-profile")?.value;
+
+      try {
+        const res = await fetch("/api/adddevice", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceName, deviceEUI, deviceAppKey, deviceAppEUI, deviceprofile }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          alert("Device added successfully!");
+          refreshDevices();
+        } else {
+          alert("Erreur : " + (data.message || "Impossible d'ajouter le device"));
+        }
+      } catch (error) {
+        console.error("Erreur lors de l'ajout du device:", error);
+        alert("Erreur de connexion. Veuillez réessayer.");
+      }
     });
 
   // Sauvegarder les settings
@@ -663,14 +885,15 @@ document.addEventListener("DOMContentLoaded", () => {
     .addEventListener("submit", async (e) => {
       e.preventDefault();
       const API_TOKEN = document.getElementById("api-token").value;
-      const URL_SERVER = document.getElementById("tenants").value;
+      const URL_SERVER = document.getElementById("network-server").value;
+      const TENANT_ID = document.getElementById("tenant").value;
       const APP_ID = document.getElementById("application").value;
 
       try {
         const res = await fetch("/api/settings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ API_TOKEN, URL_SERVER, APP_ID }),
+          body: JSON.stringify({ API_TOKEN, URL_SERVER, TENANT_ID, APP_ID }),
         });
 
         const data = await res.json();
@@ -686,7 +909,9 @@ document.addEventListener("DOMContentLoaded", () => {
               msgDiv.textContent = "";
             }, 3000);
           }
-
+           await setTenantOptions();
+           await setApplicationOptions();
+           await setDeviceProfileOptions();
           const inputs = document.querySelectorAll(".settings-form input");
           inputs.forEach((input) => {
             input.classList.add("saved-input");
@@ -700,7 +925,7 @@ document.addEventListener("DOMContentLoaded", () => {
           alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
         }
       } catch (error) {
-        console.error("Erreur lors de la sauvegarde des paramètres:", error);
+        console.log("Erreur lors de la sauvegarde des paramètres:", error);
         alert("Erreur de connexion. Veuillez réessayer.");
       }
     });
