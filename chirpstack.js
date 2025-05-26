@@ -232,6 +232,34 @@ function listTenants() {
   });
 }
 
+// Liste les tenants
+function getTenantInfo() {
+  const { server, apiToken, tenantId, applicationId } = loadSettings();
+  checkConfig({ server, apiToken, applicationId });
+
+  const metadata = new grpc.Metadata();
+  metadata.set("authorization", "Bearer " + apiToken);
+
+  const tenantService = createGrpcClient(
+    tenant_grpc.TenantServiceClient,
+    server
+  );
+
+  return new Promise((resolve, reject) => {
+    
+    const req = new tenant_pb.GetTenantRequest();
+    req.setId(tenantId);
+
+    tenantService.get(req, metadata, (err, resp) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(resp.getTenant().toObject());
+    });
+  });
+}
+
 // Liste les applications
 function listApplication() {
   const { server, apiToken, tenantId, applicationId } = loadSettings();
@@ -379,4 +407,4 @@ function sendDownlink(devEui, payloadArray, fPort = 1, confirmed = false) {
   });
 }
 
-module.exports = { getDevices, getDeviceDetails, updatedevice, listDeviceProfiles, listApplication, listTenants, adddevice, sendDownlink };
+module.exports = { getDevices, getDeviceDetails, updatedevice, listDeviceProfiles, listApplication, listTenants, getTenantInfo, adddevice, sendDownlink };

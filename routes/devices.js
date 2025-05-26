@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 
-const { getDevices, getDeviceDetails, updatedevice, listDeviceProfiles, listTenants, listApplication, adddevice, sendDownlink } = require('../chirpstack');
+const { getDevices, getDeviceDetails, updatedevice, listDeviceProfiles, listTenants, getTenantInfo, listApplication, adddevice, sendDownlink } = require('../chirpstack');
 
 // Get all devices
 router.get('/getdevices', async (req, res) => {
@@ -82,6 +82,19 @@ router.get('/gettenants', async (req, res) => {
             return res.status(404).json({ success: false, message: "Device not found" });
         }
         res.json({ success: true, tenants: tenants });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// Récupère les informations du tenant
+router.get('/gettenantinfo', async (req, res) => {
+    try {
+        const tenant = await getTenantInfo();
+        if (!tenant) {
+            return res.status(404).json({ success: false, message: "Device not found" });
+        }
+        res.json({ success: true, tenant: tenant });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }

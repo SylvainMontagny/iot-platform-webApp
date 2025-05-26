@@ -1,5 +1,3 @@
-
-
 // État du type de device actif
 let currentDeviceType = "micropelt-mlr003"; // Par défaut, on affiche les valves
 
@@ -555,14 +553,28 @@ function renderActionForm(port) {
 }
 
 async function setTenantOptions() {
+  const tenantSelect = document.querySelector(".tenant-select #tenant");
+  const tenantIdInput = document.querySelector(".settings-section #tenant-id");
+
   const res = await fetch("/api/gettenants");
   const data = await res.json();
   if (!data.success) {
     console.error("Erreur lors de la récupération des tenants:", data.message);
+    tenantSelect.innerHTML = "";
+    if (data.message.includes("UNAUTHENTICATED")) {
+      if (tenantIdInput) {
+        const result = await fetch("/api/gettenantinfo");
+        const datas = await result.json();
+        if (datas.success) {
+          tenantSelect.innerHTML = "<option value=''> "+ datas.tenant.name +" </option>";
+        }
+      } else {
+      tenantSelect.innerHTML = "<option value=''>No options</option>";
+      }
+    }
     return;
   }
   const tenants = data.tenants;
-  const tenantSelect = document.querySelector(".tenant-select #tenant");
   tenantSelect.innerHTML = "";
   tenants.forEach((tenant) => {
     const option = document.createElement("option");
@@ -574,14 +586,17 @@ async function setTenantOptions() {
 }
 
 async function setApplicationOptions() {
+  const applicationSelect = document.querySelector(".application-select #application");
+
   const res = await fetch("/api/getapplications");
   const data = await res.json();
   if (!data.success) {
     console.error("Erreur lors de la récupération des applications:", data.message);
+     applicationSelect.innerHTML = "";
+      applicationSelect.innerHTML = "<option value=''>No options</option>";
     return;
   }
   const applicatons = data.applications;
-  const applicationSelect = document.querySelector(".tenant-select #application");
   applicationSelect.innerHTML = "";
   applicatons.forEach((app) => {
     const option = document.createElement("option");
@@ -622,34 +637,94 @@ async function loadSettings() {
     return {
       server: settings.URL_SERVER,
       apiToken: settings.API_TOKEN,
+      tenantToken: settings.TENANT_TOKEN,
       tenantId: settings.TENANT_ID,
       applicationId: settings.APP_ID,
     };
   } catch {}
 }
 
+/**
+ * Sauvegarde les paramètres de configuration
+ * @async
+ * @param {Array<string>} settings - Liste des paramètres à sauvegarder
+ * @returns {Promise<void>}
+ * @example
+ * // Sauvegarder les paramètres
+ * await saveSettings();
+ */
+async function saveSettings(settings) {
+  const { server, apiToken, tenantId, applicationId, tenantToken } = await loadSettings();
+  if (!server || !apiToken) {
+    alert("Veuillez d'abord configurer l'URL du serveur et le token API.");
+    return;
+  }
+  const tenantTokenCheckbox = document.querySelector(".settings-section #tenant-key-checkbox");
+  const apiTokenInput = document.querySelector(".settings-section #api-token");
+  const tenantIdInput = document.querySelector(".settings-section #tenant-id");
+  const tenantIdSelect = document.querySelector(".tenant-select #tenant");
+  const applicationSelect = document.querySelector(".application-select #application");
+  const serverInput = document.querySelector(".settings-section #network-server");
+
+  let API_TOKEN = apiToken;
+  let TENANT_TOKEN = tenantToken;
+  let URL_SERVER = server;
+  let TENANT_ID = tenantId;
+  let APP_ID = applicationId;
+
+  settings.forEach((setting) => {
+    switch (setting) {
+      case "API_TOKEN":
+        API_TOKEN = apiTokenInput.value;
+        break;
+      case "TENANT_TOKEN":
+        TENANT_TOKEN = tenantTokenCheckbox.checked;
+        break;
+      case "URL_SERVER":
+        URL_SERVER = serverInput.value;
+        break;
+      case "TENANT_ID":
+        TENANT_ID = tenantTokenCheckbox.checked? tenantIdInput.value : tenantIdSelect.value;
+        break;
+      case "APP_ID":
+        APP_ID = applicationSelect.value;
+        break;
+      default:
+        console.warn(`Unknown setting: ${setting}`);
+        break;
+    }
+  });
+
+    try {
+        const res = await fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ API_TOKEN, URL_SERVER, TENANT_TOKEN, TENANT_ID, APP_ID }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          return {success: true, message: "Settings saved successfully"};
+        } else {
+          alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
+        }
+      } catch (error) {
+        console.error("Erreur lors de la sauvegarde des paramètres:", error);
+        alert("Erreur de connexion. Veuillez réessayer.");
+      }
+}
+
+
 // Initialisation du formulaire d'action au chargement
 document.addEventListener("DOMContentLoaded", () => {
-  // Rafraîchir les devices au chargement de la page
-  refreshDevices();
 
   //Ajouter l'écouteur d'événement pour la selection du tenant
   const tenantSelect = document.querySelector(".tenant-select #tenant");
   tenantSelect.addEventListener("change", async (e) => {
-      const { server, apiToken, tenantId, applicationId } = await loadSettings();
-      const API_TOKEN = apiToken;
-      const URL_SERVER = server;
-      const TENANT_ID = e.target.value;
-      const APP_ID = applicationId;
+      
 
       try {
-        const res = await fetch("/api/settings", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ API_TOKEN, URL_SERVER, TENANT_ID, APP_ID }),
-        });
-
-        const data = await res.json();
+        const data = await saveSettings(["TENANT_ID"]);
         if (data.success) {
           refreshDevices();
           setApplicationOptions();
@@ -664,22 +739,13 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   //Ajouter l'écouteur d'événement pour la selection de l'application
-  const appSelect = document.querySelector(".tenant-select #application");
+  const appSelect = document.querySelector(".application-select #application");
   appSelect.addEventListener("change", async (e) => {
-    const { server, apiToken, tenantId, applicationId } = await loadSettings();
-      const API_TOKEN = apiToken;
-      const URL_SERVER = server;
-      const TENANT_ID = tenantId;
-      const APP_ID = e.target.value;
 
       try {
-        const res = await fetch("/api/settings", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ API_TOKEN, URL_SERVER, TENANT_ID, APP_ID }),
-        });
 
-        const data = await res.json();
+        const data = await saveSettings(["APP_ID"]);
+
         if (data.success) {
           refreshDevices();
         } else {
@@ -689,6 +755,35 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Erreur lors de la sauvegarde des paramètres:", error);
         alert("Erreur de connexion. Veuillez réessayer.");
       }
+  });
+
+  const checkboxDiv = document.querySelector(".checkbox");
+  checkboxDiv.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    if (e.target.type == "checkbox" && e.target.id == "tenant-key-checkbox") {
+      // Si on clique sur la checkbox, on ne fait rien de plus
+    }else{
+      tenantApiKeyCheckbox.checked = !tenantApiKeyCheckbox.checked;
+      tenantApiKeyCheckbox.dispatchEvent(new Event("change"));
+    }
+  });
+
+  // Ajouter l'écouteur d'événement pour la checkbox tenant api key
+  const tenantApiKeyCheckbox = document.querySelector(".settings-section #tenant-key-checkbox");
+  tenantApiKeyCheckbox.addEventListener("change", async (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const tenantIdLabel = document.querySelector(".settings-section #tenant-id-label");
+    const tenantIdInput = document.querySelector(".settings-section #tenant-id");
+    if (e.target.checked) {
+      tenantIdInput.style.display = "block";
+      tenantIdLabel.style.display = "block";
+    } else {
+      tenantIdInput.style.display = "none";
+      tenantIdInput.value = ""; // Effacer la valeur si désactivé
+      tenantIdLabel.style.display = "none";
+    }
+    await saveSettings(["TENANT_TOKEN"]);
   });
 
   // Ajouter l'écouteur d'événement pour le bouton de rafraîchissement
@@ -823,28 +918,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
   fetch("/api/settings")
         .then((res) => res.json())
-        .then((settings) => {
-          if (settings.API_TOKEN)
+        .then(async (settings) => {
+          if (settings.API_TOKEN && settings.URL_SERVER) {
+            // Initialiser les options des sélecteurs tenant et application
+            await setTenantOptions();
+            const tenantSelectDiv = document.querySelector(".tenant-select");
+            tenantSelectDiv.style.display = "block";
+          }
+          if (settings.API_TOKEN && settings.URL_SERVER && settings.TENANT_ID) {
+            // Si les settings sont déjà chargés, on peut initialiser les options
+            await setApplicationOptions();
+            const applicationSelectDiv = document.querySelector(".application-select");
+            applicationSelectDiv.style.display = "block";
+            await setDeviceProfileOptions();
+          }
+          if (settings.API_TOKEN) {
             document.querySelector(".settings-section #api-token").value = settings.API_TOKEN;
-          if (settings.URL_SERVER)
+          }
+          if (settings.URL_SERVER) {
             document.querySelector(".settings-section #network-server").value = settings.URL_SERVER;
-          setTenantOptions()
-          .then(() => {
-            setDeviceProfileOptions();
-            setApplicationOptions()
-            .then(() => {
-            
-              // Charger les settings au chargement
-              fetch("/api/settings")
-                .then((res) => res.json())
-                .then((settings) => {
-                  if (settings.TENANT_ID)
-                    document.querySelector(".tenant-select #tenant").value = settings.TENANT_ID;
-                  if (settings.APP_ID)
-                    document.querySelector(".tenant-select > #application").value = settings.APP_ID;
-                });
-              });
-          });
+          }
+          if (settings.TENANT_ID && !settings.TENANT_TOKEN){
+            const tenantSelect = document.querySelector(".tenant-select #tenant");
+            tenantSelect.value = settings.TENANT_ID;
+            tenantSelect.dispatchEvent(new Event("change"));
+          }
+          if (settings.TENANT_ID && settings.TENANT_TOKEN) {
+            const tenantIdInput = document.querySelector(".settings-section #tenant-id");
+            tenantIdInput.value = settings.TENANT_ID;
+          }
+          if (settings.APP_ID){
+              const applicationSelect = document.querySelector(".application-select #application");
+              applicationSelect.value = settings.APP_ID;
+              applicationSelect.dispatchEvent(new Event("change"));
+            }
+            if (settings.TENANT_TOKEN) {
+              const tenantTokenCheckbox = document.querySelector(".settings-section #tenant-key-checkbox");
+              tenantTokenCheckbox.checked = true;
+              tenantTokenCheckbox.dispatchEvent(new Event("change"));
+            }
         });
   
   // Ajouter un device manuellement
@@ -884,19 +996,19 @@ document.addEventListener("DOMContentLoaded", () => {
     .querySelector(".settings-form")
     .addEventListener("submit", async (e) => {
       e.preventDefault();
-      const API_TOKEN = document.getElementById("api-token").value;
-      const URL_SERVER = document.getElementById("network-server").value;
-      const TENANT_ID = document.getElementById("tenant").value;
-      const APP_ID = document.getElementById("application").value;
+      const tenantTokenCheckbox = document.querySelector(".settings-section #tenant-key-checkbox");
+      let data = {success: false, message: ""};
+        if (tenantTokenCheckbox.checked && !document.querySelector(".settings-section #tenant-id").value) {
+          alert("Veuillez entrer un Tenant ID.");
+        }else if (tenantTokenCheckbox.checked && document.querySelector(".settings-section #tenant-id").value) {
 
-      try {
-        const res = await fetch("/api/settings", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ API_TOKEN, URL_SERVER, TENANT_ID, APP_ID }),
-        });
+          data = await saveSettings(["API_TOKEN", "URL_SERVER", "TENANT_ID",]);
 
-        const data = await res.json();
+        } else if (!tenantTokenCheckbox.checked) {
+
+          data = await saveSettings(["API_TOKEN", "URL_SERVER"]);
+        }
+        
 
         if (data.success) {
           // Afficher le message à côté du bouton Save
@@ -909,7 +1021,9 @@ document.addEventListener("DOMContentLoaded", () => {
               msgDiv.textContent = "";
             }, 3000);
           }
+          if (tenantTokenCheckbox.checked) {
            await setTenantOptions();
+          }
            await setApplicationOptions();
            await setDeviceProfileOptions();
           const inputs = document.querySelectorAll(".settings-form input");
@@ -924,9 +1038,5 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
         }
-      } catch (error) {
-        console.log("Erreur lors de la sauvegarde des paramètres:", error);
-        alert("Erreur de connexion. Veuillez réessayer.");
-      }
     });
 });

@@ -29,7 +29,7 @@ router.get("/", (req, res) => {
 
 // POST settings
 router.post("/", (req, res) => {
-  const { API_TOKEN, URL_SERVER, TENANT_ID, APP_ID } = req.body;
+  const { API_TOKEN, URL_SERVER, TENANT_TOKEN, TENANT_ID, APP_ID } = req.body;
   if (!API_TOKEN || !URL_SERVER ) {
     return res
       .status(400)
@@ -37,7 +37,7 @@ router.post("/", (req, res) => {
   }
   fs.writeFile(
     getSettingsPath(),
-    JSON.stringify({ API_TOKEN, URL_SERVER, TENANT_ID, APP_ID }, null, 2),
+    JSON.stringify({ API_TOKEN, TENANT_TOKEN, URL_SERVER, TENANT_ID, APP_ID }, null, 2),
     (err) => {
       if (err)
         return res

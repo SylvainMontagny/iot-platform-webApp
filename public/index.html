@@ -13,13 +13,15 @@
           <h2>Web Device Controller</h2>
           <div class="tenant-select">
             <span class="tenant-select-title">Tenant</span>
-          <select name="tenant" id="tenant">
-            <!-- Empty for now -->
-          </select>
-          <span class="tenant-select-title">Application</span>
-          <select name="application" id="application">
-            <!-- Empty for now -->
-          </select>
+            <select name="tenant" id="tenant">
+              <!-- Empty for now -->
+            </select>
+          </div>
+          <div class="application-select">
+            <span class="tenant-select-title">Application</span>
+            <select name="application" id="application">
+              <!-- Empty for now -->
+            </select>
           </div>
         </div>
         <ul class="nav-links">
@@ -67,6 +69,18 @@
                   <div class="form-group">
                     <label for="api-token">API Token</label>
                     <input type="password" id="api-token" name="api-token" />
+                  </div>
+                  <div class="form-group">
+                    <label for="tenant-id" id="tenant-id-label"  style="display: none;" >Tenant Id</label>
+                    <input type="text" id="tenant-id" name="tenant-id" style="display: none;" />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="tenant-key-checkbox">I have a tenant API key</label>
+                    <div class="checkbox">
+                      <input type="checkbox" id="tenant-key-checkbox" name="tenant-key-checkbox" />
+                    </div>
                   </div>
                 </div>
                 <button type="submit" class="save-button">Save</button>

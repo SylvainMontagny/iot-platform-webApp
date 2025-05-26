@@ -389,8 +389,27 @@ h2 {
   min-width: 0;
   max-width: calc(33.333% - 0.67rem);
 }
+.checkbox {
+    background-color: white;
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    height: auto;
+}
+
+.checkbox:hover {
+    background-color: rgb(241, 239, 239);
+}
+
+.settings-form .form-group input[type="checkbox"] {
+    height: 100%;
+    width: 100%;
+    margin-right: 0.5rem;
+}
+
 .action-form select,
 .tenant-select select,
+.application-select select,
 .add-device-section select,
 .settings-form select {
   padding: 0.5rem 1rem;
@@ -406,7 +425,8 @@ h2 {
   -moz-appearance: none;
 }
 
-.tenant-select select {
+.tenant-select select,
+.application-select select{
   padding: 0.5rem 1.5rem 0.5rem 1rem;
   margin-bottom: 0.5rem;
   border: 1px solid #ced4da;
