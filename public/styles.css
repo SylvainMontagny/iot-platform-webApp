@@ -159,6 +159,7 @@ h1 {
 .settings-section,
 .action-section,
 .add-device-section,
+.add-device-from-csv-section,
 .device-settings-section,
 .device-section {
   background-color: #f8f9fa;
@@ -373,6 +374,42 @@ h2 {
   content: "↓";
   color: #0f6cbd;
 }
+
+/* Dropdown styles */
+.drop-zone {
+    width: 100%;
+    height: 150px;
+    border: 2px dashed #ccc;
+    border-radius: 4px;
+    padding: 25px;
+    text-align: center;
+    position: relative;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+    cursor: pointer;
+}
+
+.drop-zone.drag-over {
+    border-color: #0f6cbd;
+    background: #e8f0fe;
+}
+
+.drop-zone-text {
+    color: #666;
+    font-size: 1.1em;
+    pointer-events: none;
+}
+
+.drop-zone input[type="file"] {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
 
 /* Action section styles */
 .action-form .form-row,

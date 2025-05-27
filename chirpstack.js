@@ -8,6 +8,7 @@ const tenant_pb = require("@chirpstack/chirpstack-api/api/tenant_pb");
 const application_grpc = require("@chirpstack/chirpstack-api/api/application_grpc_pb");
 const application_pb = require("@chirpstack/chirpstack-api/api/application_pb");
 const fs = require("fs");
+const Papa = require("papaparse");
 const path = require("path");
 const { console } = require("inspector");
 
@@ -331,6 +332,7 @@ function adddevice(deviceData) {
 
     deviceService.create(req, metadata, (err, resp) => {
       if (err) {
+        console.error("Error creating device:", err);
         reject(err);
         return;
       }
@@ -338,6 +340,7 @@ function adddevice(deviceData) {
       // Une fois le device créé, on crée les clés
       deviceService.createKeys(req2, metadata, (err, resp) => {
         if (err) {
+          console.error("Error creating device keys:", err);
           reject(err);
           return;
         }
@@ -347,6 +350,49 @@ function adddevice(deviceData) {
   });
 }
 
+async function addDeviceFromCsv(csvString) {
+  const { server, apiToken, applicationId } = loadSettings();
+  checkConfig({ server, apiToken, applicationId });
+
+  // Parse the CSV string
+  const parsedData = Papa.parse(csvString, {
+    header: true,
+    skipEmptyLines: true,
+  });
+
+  if (parsedData.errors.length > 0) {
+    throw new Error("CSV parsing error: " + parsedData.errors[0].message);
+  }
+
+  let devices = parsedData.data.map((row) => ({
+    deviceEUI: row["dev_eui"],
+    deviceAppEUI: row["join_eui"],
+    deviceName: row["name"],
+    deviceAppKey: row["app_key"],
+    deviceprofile: row["dev_profile"]
+  }));
+
+   const deviceProfiles = await listDeviceProfiles();
+
+  devices = devices.map(device => {
+    const profile = deviceProfiles.find(dp => dp.name === device.deviceprofile);
+    if (!profile) {
+      throw new Error(`Profile non trouvé: ${device.deviceprofile}`);
+    }
+    return {
+      ...device,
+      deviceprofile: profile.id
+    };
+  });
+  
+  devices.forEach(device => {
+    if (!device.deviceEUI || !device.deviceAppEUI || !device.deviceName || !device.deviceAppKey || !device.deviceprofile) {
+      throw new Error("Missing required fields in device data");
+    }
+    adddevice(device);
+  });
+  return { success: true, message: "Devices added successfully" };
+}
 // Récupère le nom du device profile
 function getDeviceProfileName(deviceProfileId) {
   const { server, apiToken } = loadSettings();
@@ -407,4 +453,4 @@ function sendDownlink(devEui, payloadArray, fPort = 1, confirmed = false) {
   });
 }
 
-module.exports = { getDevices, getDeviceDetails, updatedevice, listDeviceProfiles, listApplication, listTenants, getTenantInfo, adddevice, sendDownlink };
+module.exports = { getDevices, getDeviceDetails, updatedevice, listDeviceProfiles, listApplication, listTenants, getTenantInfo, adddevice, addDeviceFromCsv, sendDownlink };

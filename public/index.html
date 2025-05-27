@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Web Device Controller</title>
+    <title>USMB IoT Manager</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="container">
       <nav class="sidebar">
         <div class="logo">
-          <h2>Web Device Controller</h2>
+          <h2>USMB IoT Manager</h2>
           <div class="tenant-select">
             <span class="tenant-select-title">Tenant</span>
             <select name="tenant" id="tenant">
@@ -26,12 +26,6 @@
         </div>
         <ul class="nav-links">
           <li class="nav-section">
-            <span class="nav-section-title">User Management</span>
-            <ul class="submenu">
-              <!-- Empty for now -->
-            </ul>
-          </li>
-          <li class="nav-section">
             <span class="nav-section-title">Provisioning</span>
             <ul class="submenu">
               <li>
@@ -43,9 +37,9 @@
             <span class="nav-section-title">Control</span>
             <ul class="submenu">
               <li>
-                <a href="#thermostat" class="active">Thermostatic Valve</a>
+                <a href="#thermostat" class="active">Micropelt-mlr003</a>
               </li>
-              <li><a href="#temperature">Temperature Sensor</a></li>
+              <li><a href="#temperature">Dragino-lht65</a></li>
             </ul>
           </li>
           <li class = "nav-settings-section">
@@ -139,6 +133,24 @@
                 </div>
                 <div class="form-row">   
                   <!-- Empty for now -->
+                </div>
+                <button type="submit" class="save-button">Add Device</button>
+              </form>
+            </section>
+
+            <!-- Add Device From CSV Section -->
+            <section class="add-device-from-csv-section" style="display: none;">
+              <h2>Import From CSV File</h2>
+              <form class="add-device-from-csv-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <div class="drop-zone" id="drop-zone">
+                      <input type="file" id="csv-file" name="csv" accept=".csv" class="file-input"/>
+                      <div class="drop-zone-text">
+                          Glissez et déposez votre fichier CSV ici<br>
+                          ou cliquez pour sélectionner
+                      </div>
+                  </div>
                 </div>
                 <button type="submit" class="save-button">Add Device</button>
               </form>

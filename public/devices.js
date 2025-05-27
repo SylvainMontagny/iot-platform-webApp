@@ -157,7 +157,8 @@ function SettingsDisplay() {
 }
 function ProvisionningDisplay() {
   document.querySelectorAll(".page-sections section").forEach((section) => {
-    let isProvisionningRelated = section.classList.contains("add-device-section");
+    let isProvisionningRelated =  section.classList.contains("add-device-section") || 
+                                  section.classList.contains("add-device-from-csv-section");
     !isProvisionningRelated ? section.style.display = "none" : section.style.display = "block";
   });
 }
@@ -786,6 +787,76 @@ document.addEventListener("DOMContentLoaded", () => {
     await saveSettings(["TENANT_TOKEN"]);
   });
 
+  //#region ////////// Gestion du drop down /////////////
+  const dropdown = document.querySelector(".drop-zone"); 
+  const fileInput = document.querySelector(".file-input");
+
+  // Empêcher le comportement par défaut
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropdown.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    // Gérer les effets visuels
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropdown.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropdown.addEventListener(eventName, unhighlight, false);
+    });
+
+    // Gérer le drop
+    dropdown.addEventListener('drop', handleDrop, false);
+
+    function preventDefaults (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight(e) {
+        dropdown.classList.add('drag-over');
+    }
+
+    function unhighlight(e) {
+        dropdown.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }
+
+    function handleFiles(files) {
+        if (files.length) {
+            const file = files[0];
+            if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+                fileInput.files = files;
+                // Déclencher l'événement change
+                const event = new Event('change');
+                fileInput.dispatchEvent(event);
+            } else {
+                alert('Veuillez sélectionner un fichier CSV');
+            }
+        }
+    }
+   
+  fileInput.addEventListener('change', async (e) => {
+    e.stopPropagation();
+    const file = e.target.files[0];
+    const fileName = file.name;
+    const dropZoneText = document.querySelector('.drop-zone-text');
+    const filedisplay = document.createElement('div');
+    if (file.size / 1024 > 1) {
+      filedisplay.innerHTML = `<strong>Fichier sélectionné :</strong> ${fileName} ${(file.size / 1024).toFixed(2)} Ko`;
+    }else {
+    filedisplay.innerHTML = `<strong>Fichier sélectionné :</strong> ${fileName} ${file.size} octets`;
+    }
+    dropZoneText.appendChild(filedisplay);
+  });
+//#endregion
+
   // Ajouter l'écouteur d'événement pour le bouton de rafraîchissement
   const refreshButton = document.querySelector(".refresh-button");
   if (refreshButton) {
@@ -991,6 +1062,38 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+// Ajouter un device depuis un fichier CSV
+    document
+    .querySelector(".add-device-from-csv-form")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fileInput = document.querySelector(".file-input");
+      const file = fileInput.files[0];
+
+      const csvString = await file.text();
+      alert("Fichier CSV chargé avec succès : " + csvString);
+
+      try {
+        const res = await fetch("/api/adddevicefromcsv", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ csvData : csvString}),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          alert("Device added successfully!");
+          refreshDevices();
+        } else {
+          alert("Erreur : " + (data.message || "Impossible d'ajouter le device"));
+        }
+      } catch (error) {
+        console.error("Erreur lors de l'ajout du device:", error);
+        alert("Erreur de connexion. Veuillez réessayer.");
+      }
+    });
+    
   // Sauvegarder les settings
   document
     .querySelector(".settings-form")

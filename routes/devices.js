@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 
-const { getDevices, getDeviceDetails, updatedevice, listDeviceProfiles, listTenants, getTenantInfo, listApplication, adddevice, sendDownlink } = require('../chirpstack');
+const { getDevices, getDeviceDetails, updatedevice, listDeviceProfiles, listTenants, getTenantInfo, listApplication, adddevice, addDeviceFromCsv, sendDownlink } = require('../chirpstack');
 
 // Get all devices
 router.get('/getdevices', async (req, res) => {
@@ -123,6 +123,18 @@ router.post('/adddevice', async (req, res) => {
 
     try {
         const result = await adddevice(deviceData);
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// add a device
+router.post('/adddevicefromcsv', async (req, res) => {
+    const csvString = req.body.csvData;
+
+    try {
+        const result = await addDeviceFromCsv(csvString);
         res.json(result);
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
