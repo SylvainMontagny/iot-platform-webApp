@@ -34,6 +34,7 @@ function loadSettings() {
   return {
     server: settings.URL_SERVER,
     apiToken: settings.API_TOKEN,
+      tenantToken: settings.TENANT_TOKEN,
     tenantId: settings.TENANT_ID,
     applicationId: settings.APP_ID,
   };
@@ -205,8 +206,8 @@ function listDeviceProfiles() {
 }
 
 // Liste les tenants
-function listTenants() {
-  const { server, apiToken, applicationId } = loadSettings();
+function listTenants(credentials) {
+  const { server, apiToken, applicationId } = credentials ?? loadSettings();
   checkConfig({ server, apiToken, applicationId });
 
   const metadata = new grpc.Metadata();
@@ -262,9 +263,9 @@ function getTenantInfo() {
 }
 
 // Liste les applications
-function listApplication() {
-  const { server, apiToken, tenantId, applicationId } = loadSettings();
-  checkConfig({ server, apiToken, applicationId });
+function listApplication(credentials) {
+  const { server, apiToken, tenantId, applicationId } = credentials ?? loadSettings();
+  //checkConfig({ server, apiToken, applicationId });
 
   const metadata = new grpc.Metadata();
   metadata.set("authorization", "Bearer " + apiToken);

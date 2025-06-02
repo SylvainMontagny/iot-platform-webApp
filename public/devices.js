@@ -166,7 +166,7 @@ function ProvisionningDisplay() {
 function handleSectionChange(section) {
   // Mettre à jour le type de device actif
   currentDeviceType =
-    section === "thermostat" ? "micropelt-mlr003" : "temperature-sensor";
+    section === "thermostat" ? "micropelt-mlr003" : "Dragino-lht65";
 
   // Mettre à jour la classe active dans le menu pour les liens
   document.querySelectorAll(".nav-links a").forEach((link) => {
@@ -204,303 +204,435 @@ function handleSectionChange(section) {
         title.textContent = "Device Management";
     }
   }
+  
+  const select = document.getElementById("action-type-select");
+  if (select){
+    select.innerHTML = "";
+    switch (currentDeviceType) {
+      case "micropelt-mlr003":
+        select.innerHTML = `<option value="1">Operate</option>
+                            <option value="2">Version</option>
+                            <option value="3">Motor Travel Distance</option>
+                            <option value="4">Data Rate</option>
+                            <option value="5">
+                              Opening Point Detection & Slow Harvesting
+                            </option>
+                            <option value="6">Temperature Drop Detection</option>
+                            <option value="7">PID</option>
+                            <option value="8">Temperature Estimate</option>
+                            <option value="9">External Sensor</option>
+                            <option value="10">External Temperature</option>
+                            <option value="11">Beep</option>
+                            <option value="15">On/Off</option>`;
+        break;
+      case "Dragino-lht65":
+        select.innerHTML = `<option value="1">Transmit Interval Time</option>
+                            <option value="168">
+                              Enable/Disable uplink DS18B20 probe ID
+                            </option>
+                            <option value="48">Set system time</option>
+                            <option value="40">Time Sync Mode</option>
+                            <option value="41">Time Sync Interval</option>
+                            <option value="163">Clear Flash Record</option>`;
+                          //<option value="162">External Sensor Mode</option>
+        break;
+      default:
+        console.warn("Unknown device type:", currentDeviceType);
+    }  
+  }
 
+  const actionForm = document.getElementById("action-form");
+  if (actionForm) {
+    actionForm.innerHTML = ""; // Effacer le contenu précédent
+    renderActionForm(1); // Afficher le formulaire pour le port 1 par défaut
+  }
   // Rafraîchir les devices avec le nouveau type
   refreshDevices();
 }
 
 // Définition des formulaires pour chaque action
 const actionForms = {
-  1: {
-    fields: [
-      {
-        label: "User Mode",
-        name: "userMode",
-        type: "select",
-        options: ["Ambient_Temperature", "Valve_Position"],
-      },
-      {
-        label: "Safety Mode",
-        name: "safetyMode",
-        type: "select",
-        options: ["Ambient_Temperature", "Valve_Position"],
-      },
-      {
-        label: "Set Value",
-        name: "setValue",
-        type: "number",
-        min: 0,
-        max: 40,
-        value: 21,
-      },
-      {
-        label: "Room Temperature",
-        name: "roomTemperature",
-        type: "number",
-        min: 0,
-        max: 40,
-        value: 20,
-      },
-      {
-        label: "Safety Value",
-        name: "safetyValue",
-        type: "number",
-        min: 0,
-        max: 40,
-        value: 19,
-      },
-      {
-        label: "Radio Interval",
-        name: "radioInterval",
-        type: "select",
-        options: [5, 10, 60, 120, 480],
-      },
-      {
-        label: "Do Reference Run Now",
-        name: "doReferenceRunNow",
-        type: "select",
-        options: [
-          { label: "No", value: 0 },
-          { label: "Yes", value: 1 },
-        ],
-      },
-    ],
+  "micropelt-mlr003": {
+    1: {
+      fields: [
+        {
+          label: "User Mode",
+          name: "userMode",
+          type: "select",
+          options: ["Ambient_Temperature", "Valve_Position"],
+        },
+        {
+          label: "Safety Mode",
+          name: "safetyMode",
+          type: "select",
+          options: ["Ambient_Temperature", "Valve_Position"],
+        },
+        {
+          label: "Set Value",
+          name: "setValue",
+          type: "number",
+          min: 0,
+          max: 40,
+          value: 21,
+        },
+        {
+          label: "Room Temperature",
+          name: "roomTemperature",
+          type: "number",
+          min: 0,
+          max: 40,
+          value: 20,
+        },
+        {
+          label: "Safety Value",
+          name: "safetyValue",
+          type: "number",
+          min: 0,
+          max: 40,
+          value: 19,
+        },
+        {
+          label: "Radio Interval",
+          name: "radioInterval",
+          type: "select",
+          options: [5, 10, 60, 120, 480],
+        },
+        {
+          label: "Do Reference Run Now",
+          name: "doReferenceRunNow",
+          type: "select",
+          options: [
+            { label: "No", value: 0 },
+            { label: "Yes", value: 1 },
+          ],
+        },
+      ],
+    },
+    2: { fields: [] },
+    3: {
+      fields: [
+        {
+          label: "Motor Operating Range",
+          name: "motor_operating_range",
+          type: "select",
+          options: [
+            "2.56048",
+            "0.624",
+            "0.832",
+            "1.040",
+            "1.248",
+            "1.456",
+            "1.664",
+            "1.872",
+            "2.080",
+            "2.288",
+            "2.496",
+          ],
+        },
+      ],
+    },
+    4: {
+      fields: [
+        {
+          label: "Spreading Factor",
+          name: "spreading_factor",
+          type: "select",
+          options: ["SF7", "SF8"],
+        },
+      ],
+    },
+    5: {
+      fields: [
+        {
+          label: "Opening Point Reset",
+          name: "opening_point_reset",
+          type: "select",
+          options: [
+            { label: "No", value: false },
+            { label: "Yes", value: true },
+          ],
+        },
+        {
+          label: "Hot Water Availability",
+          name: "hot_water_availability",
+          type: "select",
+          options: ["Use_time_of_year", "OFF", "ON"],
+        },
+        {
+          label: "Slow Harvesting",
+          name: "slow_harvesting",
+          type: "select",
+          options: [
+            "DEFAULT",
+            "DO_OPD_AND_SH",
+            "DO_OPD_ONLY",
+            "DISABLE_OPD_AND_SH",
+          ],
+        },
+        {
+          label: "Max Flow Sensor Raw",
+          name: "max_flow_sensor_raw",
+          type: "number",
+          min: 0,
+          max: 33,
+          value: 27,
+        },
+      ],
+    },
+    6: {
+      fields: [
+        {
+          label: "TDD Action",
+          name: "tdd_action",
+          type: "select",
+          options: [
+            "No_Action",
+            "Close_to_0%_for_30_minutes",
+            "Close_to_0%_for_60_minutes",
+          ],
+        },
+        {
+          label: "TDD Beep",
+          name: "tdd_beep",
+          type: "select",
+          options: [
+            { label: "No", value: false },
+            { label: "Yes", value: true },
+          ],
+        },
+        {
+          label: "TDD Period",
+          name: "tdd_period",
+          type: "select",
+          options: [1, 2],
+        },
+      ],
+    },
+    7: {
+      fields: [
+        { label: "kP", name: "kP", type: "number", min: 0, max: 255, value: 20 },
+        {
+          label: "kI",
+          name: "kI",
+          type: "number",
+          min: 0,
+          max: 5.1,
+          step: 0.01,
+          value: 1.5,
+        },
+        {
+          label: "kD",
+          name: "kD",
+          type: "number",
+          min: 0,
+          max: 51,
+          step: 0.1,
+          value: 21,
+        },
+        {
+          label: "Closed Percent",
+          name: "Closed_Percent",
+          type: "number",
+          min: 0,
+          max: 100,
+          value: 32,
+        },
+        {
+          label: "kD when closed",
+          name: "kD_when_closed",
+          type: "number",
+          min: 0,
+          max: 51,
+          step: 0.1,
+          value: 14,
+        },
+        {
+          label: "Offset Percent",
+          name: "Offset_Percent",
+          type: "number",
+          min: 0,
+          max: 100,
+          value: 42,
+        },
+      ],
+    },
+    8: {
+      fields: [
+        {
+          label: "Flow Raw Value Offset",
+          name: "Flow_Raw_Value_Offset",
+          type: "number",
+          min: -32,
+          max: 31.75,
+          step: 0.01,
+          value: 2.5,
+        },
+      ],
+    },
+    9: {
+      fields: [
+        {
+          label: "External Temperature Sensor Expiry (min)",
+          name: "External_temperature_sensor_expiry_minutes",
+          type: "number",
+          min: 0,
+          max: 1275,
+          value: 5,
+        },
+      ],
+    },
+    10: {
+      fields: [
+        {
+          label: "Room Temperature",
+          name: "Room_Temperature",
+          type: "number",
+          min: 0,
+          max: 40,
+          value: 22,
+        },
+      ],
+    },
+    11: {
+      fields: [
+        {
+          label: "Beep",
+          name: "Beep",
+          type: "number",
+          min: 0,
+          max: 255,
+          value: 3,
+        },
+      ],
+    },
+    15: {
+      fields: [
+        {
+          label: "Device will operate if 6 week reference run fails",
+          name: "device_will_operate_if_6_week_reference_run_fails",
+          type: "select",
+          options: [
+            { label: "No", value: false },
+            { label: "Yes", value: true },
+          ],
+        },
+        {
+          label: "Do recalibration now",
+          name: "do_recalibation_now",
+          type: "select",
+          options: [
+            { label: "No", value: false },
+            { label: "Yes", value: true },
+          ],
+        },
+        {
+          label: "Turn off device",
+          name: "turn_off_device",
+          type: "select",
+          options: [
+            { label: "No", value: false },
+            { label: "Yes", value: true },
+          ],
+        },
+      ],
+    }
   },
-  2: { fields: [] },
-  3: {
-    fields: [
-      {
-        label: "Motor Operating Range",
-        name: "motor_operating_range",
-        type: "select",
-        options: [
-          "2.56048",
-          "0.624",
-          "0.832",
-          "1.040",
-          "1.248",
-          "1.456",
-          "1.664",
-          "1.872",
-          "2.080",
-          "2.288",
-          "2.496",
-        ],
-      },
-    ],
-  },
-  4: {
-    fields: [
-      {
-        label: "Spreading Factor",
-        name: "spreading_factor",
-        type: "select",
-        options: ["SF7", "SF8"],
-      },
-    ],
-  },
-  5: {
-    fields: [
-      {
-        label: "Opening Point Reset",
-        name: "opening_point_reset",
-        type: "select",
-        options: [
-          { label: "No", value: false },
-          { label: "Yes", value: true },
-        ],
-      },
-      {
-        label: "Hot Water Availability",
-        name: "hot_water_availability",
-        type: "select",
-        options: ["Use_time_of_year", "OFF", "ON"],
-      },
-      {
-        label: "Slow Harvesting",
-        name: "slow_harvesting",
-        type: "select",
-        options: [
-          "DEFAULT",
-          "DO_OPD_AND_SH",
-          "DO_OPD_ONLY",
-          "DISABLE_OPD_AND_SH",
-        ],
-      },
-      {
-        label: "Max Flow Sensor Raw",
-        name: "max_flow_sensor_raw",
-        type: "number",
-        min: 0,
-        max: 33,
-        value: 27,
-      },
-    ],
-  },
-  6: {
-    fields: [
-      {
-        label: "TDD Action",
-        name: "tdd_action",
-        type: "select",
-        options: [
-          "No_Action",
-          "Close_to_0%_for_30_minutes",
-          "Close_to_0%_for_60_minutes",
-        ],
-      },
-      {
-        label: "TDD Beep",
-        name: "tdd_beep",
-        type: "select",
-        options: [
-          { label: "No", value: false },
-          { label: "Yes", value: true },
-        ],
-      },
-      {
-        label: "TDD Period",
-        name: "tdd_period",
-        type: "select",
-        options: [1, 2],
-      },
-    ],
-  },
-  7: {
-    fields: [
-      { label: "kP", name: "kP", type: "number", min: 0, max: 255, value: 20 },
-      {
-        label: "kI",
-        name: "kI",
-        type: "number",
-        min: 0,
-        max: 5.1,
-        step: 0.01,
-        value: 1.5,
-      },
-      {
-        label: "kD",
-        name: "kD",
-        type: "number",
-        min: 0,
-        max: 51,
-        step: 0.1,
-        value: 21,
-      },
-      {
-        label: "Closed Percent",
-        name: "Closed_Percent",
-        type: "number",
-        min: 0,
-        max: 100,
-        value: 32,
-      },
-      {
-        label: "kD when closed",
-        name: "kD_when_closed",
-        type: "number",
-        min: 0,
-        max: 51,
-        step: 0.1,
-        value: 14,
-      },
-      {
-        label: "Offset Percent",
-        name: "Offset_Percent",
-        type: "number",
-        min: 0,
-        max: 100,
-        value: 42,
-      },
-    ],
-  },
-  8: {
-    fields: [
-      {
-        label: "Flow Raw Value Offset",
-        name: "Flow_Raw_Value_Offset",
-        type: "number",
-        min: -32,
-        max: 31.75,
-        step: 0.01,
-        value: 2.5,
-      },
-    ],
-  },
-  9: {
-    fields: [
-      {
-        label: "External Temperature Sensor Expiry (min)",
-        name: "External_temperature_sensor_expiry_minutes",
-        type: "number",
-        min: 0,
-        max: 1275,
-        value: 5,
-      },
-    ],
-  },
-  10: {
-    fields: [
-      {
-        label: "Room Temperature",
-        name: "Room_Temperature",
-        type: "number",
-        min: 0,
-        max: 40,
-        value: 22,
-      },
-    ],
-  },
-  11: {
-    fields: [
-      {
-        label: "Beep",
-        name: "Beep",
-        type: "number",
-        min: 0,
-        max: 255,
-        value: 3,
-      },
-    ],
-  },
-  15: {
-    fields: [
-      {
-        label: "Device will operate if 6 week reference run fails",
-        name: "device_will_operate_if_6_week_reference_run_fails",
-        type: "select",
-        options: [
-          { label: "No", value: false },
-          { label: "Yes", value: true },
-        ],
-      },
-      {
-        label: "Do recalibration now",
-        name: "do_recalibation_now",
-        type: "select",
-        options: [
-          { label: "No", value: false },
-          { label: "Yes", value: true },
-        ],
-      },
-      {
-        label: "Turn off device",
-        name: "turn_off_device",
-        type: "select",
-        options: [
-          { label: "No", value: false },
-          { label: "Yes", value: true },
-        ],
-      },
-    ],
-  },
+  "Dragino-lht65": {
+    1: {
+      fields: [
+        {
+          label: "Transmit Interval Time",
+          name: "transmit_interval_time",
+          type: "select",
+          options: [
+            { label: "30 sec", value: 30 },
+            { label: "1 min", value: 60 },
+            { label: "10 min", value: 600 },
+            { label: "30 min", value: 1800 },
+            { label: "1 h", value: 3600 },
+            { label: "12 h", value: 43200 },
+            { label: "24 h", value: 86400 },
+          ],
+        },
+      ],
+    },
+    40: {
+      fields: [
+        {
+          label: "Time Sync Mode",
+          name: "time_sync_mode",
+          type: "select",
+          options: [
+            { label: "Disabled", value: 0 },
+            { label: "Enabled", value: 1 },
+          ],
+        }
+      ]
+    },
+    41: {
+      fields: [
+        {
+          label: "Time Sync Interval",
+          name: "time_sync_interval",
+          type: "select",
+          options: [
+            { label: "1 day", value: 1 },
+            { label: "5 days", value: 5 },
+            { label: "10 days", value: 10 },
+            { label: "15 days", value: 15 },
+            { label: "20 days", value: 20 },
+            { label: "25 days", value: 25 },
+            { label: "30 days", value: 30 },
+          ],
+        }
+      ]
+    },
+    48:{
+      fields: [
+        {
+          label: "Set System Time",
+          name: "set_system_time",
+          type: "datetime-local",
+          value: new Date().toISOString().slice(0, 16), // Format YYYY-MM-DDTHH:mm
+        }
+      ]
+    },
+    162:{
+    },
+    163:{
+      fields: [
+        {
+          label: "Clear Flash Record",
+          name: "clear_flash_record",
+          type: "select",
+          options: [
+            { label: "No", value: 0 },
+            { label: "Yes", value: 1 },
+          ],
+        }
+      ]
+    },
+    168:{
+      fields: [
+        {
+          label: "External Sensor Mode",
+          name: "external_sensor_mode",
+          type: "select",
+          options: [
+            { label: "Disabled", value: 0 },
+            { label: "Enabled", value: 1 },
+          ],
+        }
+      ]
+    }
+  }
 };
 
 // Génère dynamiquement le formulaire d'action
 function renderActionForm(port) {
   const form = document.getElementById("action-form");
   form.innerHTML = "";
-  const config = actionForms[port];
+  const config = actionForms[currentDeviceType][port];
   if (!config || !config.fields.length) {
     form.innerHTML =
       "<div class='action-content'>No action form available for this port</div>";
@@ -562,28 +694,27 @@ async function setTenantOptions() {
   if (!data.success) {
     console.error("Erreur lors de la récupération des tenants:", data.message);
     tenantSelect.innerHTML = "";
-    if (data.message.includes("UNAUTHENTICATED")) {
-      if (tenantIdInput) {
-        const result = await fetch("/api/gettenantinfo");
-        const datas = await result.json();
-        if (datas.success) {
-          tenantSelect.innerHTML = "<option value=''> "+ datas.tenant.name +" </option>";
-        }
-      } else {
-      tenantSelect.innerHTML = "<option value=''>No options</option>";
+    if (data.message.includes("UNAUTHENTICATED") && tenantIdInput) {
+      const result = await fetch("/api/gettenantinfo");
+      const datas = await result.json();
+      if (datas.success) {
+        tenantSelect.innerHTML = "<option value=''> "+ datas.tenant.name +" </option>";
       }
-    }
-    return;
+    }else {
+      tenantSelect.innerHTML = "<option value=''>No options</option>";
+      tenantSelect.value = "";
+      }
+  }else {
+    const tenants = data.tenants;
+    tenantSelect.innerHTML = "";
+    tenants.forEach((tenant) => {
+      const option = document.createElement("option");
+      option.value = tenant.id;
+      option.textContent = tenant.name;
+      tenantSelect.appendChild(option);
+    });
+    tenantSelect.dispatchEvent(new Event("change"));
   }
-  const tenants = data.tenants;
-  tenantSelect.innerHTML = "";
-  tenants.forEach((tenant) => {
-    const option = document.createElement("option");
-    option.value = tenant.id;
-    option.textContent = tenant.name;
-    tenantSelect.appendChild(option);
-  });
-  tenantSelect.dispatchEvent(new Event("change"));
 }
 
 async function setApplicationOptions() {
@@ -656,10 +787,6 @@ async function loadSettings() {
  */
 async function saveSettings(settings) {
   const { server, apiToken, tenantId, applicationId, tenantToken } = await loadSettings();
-  if (!server || !apiToken) {
-    alert("Veuillez d'abord configurer l'URL du serveur et le token API.");
-    return;
-  }
   const tenantTokenCheckbox = document.querySelector(".settings-section #tenant-key-checkbox");
   const apiTokenInput = document.querySelector(".settings-section #api-token");
   const tenantIdInput = document.querySelector(".settings-section #tenant-id");
@@ -667,11 +794,11 @@ async function saveSettings(settings) {
   const applicationSelect = document.querySelector(".application-select #application");
   const serverInput = document.querySelector(".settings-section #network-server");
 
-  let API_TOKEN = apiToken;
-  let TENANT_TOKEN = tenantToken;
-  let URL_SERVER = server;
-  let TENANT_ID = tenantId;
-  let APP_ID = applicationId;
+  let API_TOKEN = apiToken || apiTokenInput.value;
+  let TENANT_TOKEN = tenantToken || tenantTokenCheckbox.checked;
+  let URL_SERVER = server || serverInput.value;
+  let TENANT_ID = tenantId || (tenantTokenCheckbox.checked ? tenantIdInput.value : tenantIdSelect.value);
+  let APP_ID = applicationId || applicationSelect.value;
 
   settings.forEach((setting) => {
     switch (setting) {
@@ -715,6 +842,82 @@ async function saveSettings(settings) {
       }
 }
 
+/**
+ * Test Connection to the server
+ * @async
+ * @returns {Promise<void>}
+ * @example
+ * // Test Connection
+ * await testConnection();
+ */
+async function testConnection() {
+  const tenantTokenCheckbox = document.querySelector(".settings-section #tenant-key-checkbox");
+  const apiTokenInput = document.querySelector(".settings-section #api-token");
+  const tenantIdInput = document.querySelector(".settings-section #tenant-id");
+  const serverInput = document.querySelector(".settings-section #network-server");
+  const inputs = document.querySelectorAll(".settings-form input");
+  const msgDiv = document.querySelector(".settings-message");
+  let response;
+
+  if (tenantTokenCheckbox.checked && !document.querySelector(".settings-section #tenant-id").value) {
+    alert("Veuillez entrer un Tenant ID.");
+  }else if (tenantTokenCheckbox.checked) {
+    try {
+      const data = await fetch("/api/testconnection", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({server: serverInput.value, apiToken: apiTokenInput.value, tenantId: tenantIdInput.value}),
+      });
+      const response = await data.json();
+    
+      if (!response.success) {
+        throw new Error(response.message || "Impossible de se connecter");
+      }else {
+        if (msgDiv) {
+          msgDiv.textContent = "Connection successfull!";
+          msgDiv.style.color = "#2ecc40";
+          // Efface le message après 3 secondes
+          setTimeout(() => {
+            msgDiv.textContent = "";
+          }, 3000);
+        }
+      }
+      return response;
+    } catch (err) {
+      alert("Erreur réseau : " + err);
+      response = { success: false, message: err|| "Erreur réseau" };
+      return response;
+    }
+  } else if (!tenantTokenCheckbox.checked) {
+    try {
+      const data = await fetch("/api/testconnection", {
+        method: "post",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({server: serverInput.value, apiToken: apiTokenInput.value}),
+      });
+      const response = await data.json();
+    
+      if (!response.success) {
+        throw new Error(response.message || "Impossible de se connecter");
+      }else {
+        if (msgDiv) {
+          msgDiv.textContent = "Connection successfull!";
+          msgDiv.style.color = "#2ecc40";
+          // Efface le message après 3 secondes
+          setTimeout(() => {
+            msgDiv.textContent = "";
+          }, 3000);
+        }
+      }
+      return response;
+    } catch (err) {
+      alert("Erreur réseau : " + err);
+      response = { success: false, message: err|| "Erreur réseau" };
+      return response;
+    }
+  }
+
+}
 
 // Initialisation du formulaire d'action au chargement
 document.addEventListener("DOMContentLoaded", () => {
@@ -727,9 +930,7 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const data = await saveSettings(["TENANT_ID"]);
         if (data.success) {
-          refreshDevices();
           setApplicationOptions();
-          setDeviceProfileOptions();
         } else {
           alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
         }
@@ -749,6 +950,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (data.success) {
           refreshDevices();
+          setDeviceProfileOptions();
         } else {
           alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
         }
@@ -882,7 +1084,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Bouton Send pour envoyer l'action aux devices sélectionnés
   const sendBtn = document.getElementById("send-action-btn");
-  if (sendBtn) {
+    if (sendBtn) {
     sendBtn.addEventListener("click", async () => {
       const actionTypeSelect = document.getElementById("action-type-select");
       const port = Number(actionTypeSelect.value);
@@ -928,8 +1130,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // Appel de l'encodeur dynamique
         let encoded;
         try {
-          encoded = window[`encode_port_${port}`]
-            ? window[`encode_port_${port}`]({ data: formData })
+          encoded = window[`${currentDeviceType.replaceAll('-','_')}_encode_port_${port}`]
+            ? window[`${currentDeviceType.replaceAll('-','_')}_encode_port_${port}`]({ data: formData })
             : [];
         } catch (e) {
           alert("Erreur d'encodage : " + e.message);
@@ -990,6 +1192,12 @@ document.addEventListener("DOMContentLoaded", () => {
   fetch("/api/settings")
         .then((res) => res.json())
         .then(async (settings) => {
+          if (settings.API_TOKEN) {
+            document.querySelector(".settings-section #api-token").value = settings.API_TOKEN;
+          }
+          if (settings.URL_SERVER) {
+            document.querySelector(".settings-section #network-server").value = settings.URL_SERVER;
+          }
           if (settings.API_TOKEN && settings.URL_SERVER) {
             // Initialiser les options des sélecteurs tenant et application
             await setTenantOptions();
@@ -1003,31 +1211,11 @@ document.addEventListener("DOMContentLoaded", () => {
             applicationSelectDiv.style.display = "block";
             await setDeviceProfileOptions();
           }
-          if (settings.API_TOKEN) {
-            document.querySelector(".settings-section #api-token").value = settings.API_TOKEN;
+          if (settings.TENANT_TOKEN) {
+            const tenantTokenCheckbox = document.querySelector(".settings-section #tenant-key-checkbox");
+            tenantTokenCheckbox.checked = true;
+            tenantTokenCheckbox.dispatchEvent(new Event("change"));
           }
-          if (settings.URL_SERVER) {
-            document.querySelector(".settings-section #network-server").value = settings.URL_SERVER;
-          }
-          if (settings.TENANT_ID && !settings.TENANT_TOKEN){
-            const tenantSelect = document.querySelector(".tenant-select #tenant");
-            tenantSelect.value = settings.TENANT_ID;
-            tenantSelect.dispatchEvent(new Event("change"));
-          }
-          if (settings.TENANT_ID && settings.TENANT_TOKEN) {
-            const tenantIdInput = document.querySelector(".settings-section #tenant-id");
-            tenantIdInput.value = settings.TENANT_ID;
-          }
-          if (settings.APP_ID){
-              const applicationSelect = document.querySelector(".application-select #application");
-              applicationSelect.value = settings.APP_ID;
-              applicationSelect.dispatchEvent(new Event("change"));
-            }
-            if (settings.TENANT_TOKEN) {
-              const tenantTokenCheckbox = document.querySelector(".settings-section #tenant-key-checkbox");
-              tenantTokenCheckbox.checked = true;
-              tenantTokenCheckbox.dispatchEvent(new Event("change"));
-            }
         });
   
   // Ajouter un device manuellement
@@ -1099,47 +1287,74 @@ document.addEventListener("DOMContentLoaded", () => {
     .querySelector(".settings-form")
     .addEventListener("submit", async (e) => {
       e.preventDefault();
+      const submitter = e.submitter.id;
       const tenantTokenCheckbox = document.querySelector(".settings-section #tenant-key-checkbox");
+      const apiTokenInput = document.querySelector(".settings-section #api-token");
+      const tenantIdInput = document.querySelector(".settings-section #tenant-id");
+      const serverInput = document.querySelector(".settings-section #network-server");
+      const inputs = document.querySelectorAll(".settings-form input");
+      const msgDiv = document.querySelector(".settings-message");
       let data = {success: false, message: ""};
-        if (tenantTokenCheckbox.checked && !document.querySelector(".settings-section #tenant-id").value) {
-          alert("Veuillez entrer un Tenant ID.");
-        }else if (tenantTokenCheckbox.checked && document.querySelector(".settings-section #tenant-id").value) {
 
-          data = await saveSettings(["API_TOKEN", "URL_SERVER", "TENANT_ID",]);
+      switch (submitter) {
+        case "save-credentials":
+          const res = await testConnection();
+          if (res.success) {
+            if (tenantTokenCheckbox.checked && !document.querySelector(".settings-section #tenant-id").value) {
+              alert("Veuillez entrer un Tenant ID.");
+            }else if (tenantTokenCheckbox.checked) {
+            
+              data = await saveSettings(["API_TOKEN", "URL_SERVER", "TENANT_ID",]);
+            
+            } else if (!tenantTokenCheckbox.checked) {
+            
+              data = await saveSettings(["API_TOKEN", "URL_SERVER"]);
 
-        } else if (!tenantTokenCheckbox.checked) {
+            }
 
-          data = await saveSettings(["API_TOKEN", "URL_SERVER"]);
-        }
-        
+          
+            if (data.success) {
+              // Afficher le message à côté du bouton Save
+              if (msgDiv) {
+                msgDiv.textContent = "Settings saved successfully!";
+                msgDiv.style.color = "#2ecc40";
+                // Efface le message après 3 secondes
+                setTimeout(() => {
+                  msgDiv.textContent = "";
+                }, 3000);
+              }
+              await setTenantOptions();
+              await setApplicationOptions();
+              await setDeviceProfileOptions();
 
-        if (data.success) {
-          // Afficher le message à côté du bouton Save
-          const msgDiv = document.querySelector(".settings-message");
-          if (msgDiv) {
-            msgDiv.textContent = "Settings saved successfully!";
-            msgDiv.style.color = "#2ecc40";
-            // Efface le message après 3 secondes
-            setTimeout(() => {
-              msgDiv.textContent = "";
-            }, 3000);
+              inputs.forEach((input) => {
+                input.classList.add("saved-input");
+                setTimeout(() => {
+                  input.classList.remove("saved-input");
+                }, 1000);
+              });
+            
+              refreshDevices();
+            } else {
+              alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
+            }
+          }else {
+            if (msgDiv) {
+              msgDiv.textContent = "Connection error!";
+              msgDiv.style.color = "#ff4136";
+              // Efface le message après 3 secondes
+              setTimeout(() => {
+                msgDiv.textContent = "";
+              }, 3000);
+            }
           }
-          if (tenantTokenCheckbox.checked) {
-           await setTenantOptions();
-          }
-           await setApplicationOptions();
-           await setDeviceProfileOptions();
-          const inputs = document.querySelectorAll(".settings-form input");
-          inputs.forEach((input) => {
-            input.classList.add("saved-input");
-            setTimeout(() => {
-              input.classList.remove("saved-input");
-            }, 1000);
-          });
-
-          refreshDevices();
-        } else {
-          alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
-        }
+          break;
+        case "test-connection":
+          await testConnection();
+          break;
+        default:
+          console.warn("Formulaire inconnu:", target.id);
+          return;
+      }
     });
 });

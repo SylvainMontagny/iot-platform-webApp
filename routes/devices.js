@@ -3,6 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 
 const { getDevices, getDeviceDetails, updatedevice, listDeviceProfiles, listTenants, getTenantInfo, listApplication, adddevice, addDeviceFromCsv, sendDownlink } = require('../chirpstack');
+const { credentials } = require('@grpc/grpc-js');
 
 // Get all devices
 router.get('/getdevices', async (req, res) => {
@@ -111,6 +112,29 @@ router.get('/getapplications', async (req, res) => {
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
+});
+
+router.post('/testconnection', async (req, res) => {
+    const credentials = req.body
+    if (!credentials.tenantId) {
+       try {
+            const devices = await listTenants(credentials);
+            res.json({ success: true, devices });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    }else {
+         try {
+            const applications = await listApplication(credentials);
+            if (!applications) {
+                return res.status(404).json({ success: false, message: "Device not found" });
+            }
+            res.json({ success: true, applications: applications });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    }
+    
 });
 
 // add a device

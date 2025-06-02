@@ -27,7 +27,8 @@ body {
   border-right: 1px solid #e9ecef;
 }
 
-.logo {
+.logo,
+.nav-settings {
   padding: 1rem 0;
   border-bottom: 1px solid #e9ecef;
   margin-bottom: 1rem;
@@ -46,11 +47,6 @@ body {
 .nav-section {
   margin-bottom: 1.5rem;
   position: relative;
-}
-
-.nav-settings-section {
-  margin-bottom: 1.5rem;
-  position: bottom;
 }
 
 .nav-section.active .nav-section-title {
@@ -172,7 +168,6 @@ h1 {
 h2 {
   color: #2c3e50;
   font-size: 1.2rem;
-  margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
   border-bottom: 2px solid #e9ecef;
 }

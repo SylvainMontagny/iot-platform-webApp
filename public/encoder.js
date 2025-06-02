@@ -1,4 +1,4 @@
-function encode_port_1(input) {
+function micropelt_mlr003_encode_port_1(input) {
   let mode = input.data.userMode; // "Ambient_Temperature" or "Valve_Position"
   let safetyMode = input.data.safetyMode; // "Ambient_Temperature" or "Valve_Position"
   let setValue = input.data.setValue; // 0-40 for Ambient_Temperature, 0-100 for Valve_Position
@@ -89,10 +89,10 @@ function encode_port_1(input) {
   }
   return bytes;
 }
-function encode_port_2() {
+function micropelt_mlr003_encode_port_2() {
   return [];
 }
-function encode_port_3(input) {
+function micropelt_mlr003_encode_port_3(input) {
   let bytes = [0];
   let range = String(input.data.motor_operating_range);
   switch (range) {
@@ -134,7 +134,7 @@ function encode_port_3(input) {
   }
   return bytes;
 }
-function encode_port_4(input) {
+function micropelt_mlr003_encode_port_4(input) {
   let bytes = [0];
   let sf = input.data.spreading_factor;
   switch (sf) {
@@ -149,7 +149,7 @@ function encode_port_4(input) {
   }
   return bytes;
 }
-function encode_port_5(input) {
+function micropelt_mlr003_encode_port_5(input) {
   let bytes = [0, 0];
   let opening_point_reset = input.data.opening_point_reset;
   let hot_water_availability = input.data.hot_water_availability;
@@ -201,7 +201,7 @@ function encode_port_5(input) {
   }
   return bytes;
 }
-function encode_port_6(input) {
+function micropelt_mlr003_encode_port_6(input) {
   let bytes = [0];
   let tdd_action = input.data.tdd_action;
   let tdd_beep = input.data.tdd_beep;
@@ -240,7 +240,7 @@ function encode_port_6(input) {
   bytes[0] = tdd_action_bit | tdd_beep_bit | tdd_period_bit;
   return bytes;
 }
-function encode_port_7(input) {
+function micropelt_mlr003_encode_port_7(input) {
   let bytes = [0, 0, 0, 0, 0, 0, 0];
   let kP = input.data.kP;
   let kI = input.data.kI;
@@ -281,7 +281,7 @@ function encode_port_7(input) {
   }
   return bytes;
 }
-function encode_port_8(input) {
+function micropelt_mlr003_encode_port_8(input) {
   let bytes = [0];
   let frv_offset = input.data.Flow_Raw_Value_Offset;
   if (frv_offset >= 0 && frv_offset <= 31.75) {
@@ -295,7 +295,7 @@ function encode_port_8(input) {
   }
   return bytes;
 }
-function encode_port_9(input) {
+function micropelt_mlr003_encode_port_9(input) {
   let bytes = [0];
   let external_sensor_expiry =
     input.data.External_temperature_sensor_expiry_minutes;
@@ -306,7 +306,7 @@ function encode_port_9(input) {
   }
   return bytes;
 }
-function encode_port_10(input) {
+function micropelt_mlr003_encode_port_10(input) {
   let bytes = [0];
   let room_temperature = input.data.Room_Temperature;
   if (room_temperature >= 0 && room_temperature <= 40) {
@@ -316,7 +316,7 @@ function encode_port_10(input) {
   }
   return bytes;
 }
-function encode_port_11(input) {
+function micropelt_mlr003_encode_port_11(input) {
   let bytes = [0];
   let beeps = input.data.Beep;
   if (beeps >= 0 && beeps <= 255) {
@@ -326,7 +326,7 @@ function encode_port_11(input) {
   }
   return bytes;
 }
-function encode_port_15(input) {
+function micropelt_mlr003_encode_port_15(input) {
   let bytes = [0];
   let on = input.data.device_will_operate_if_6_week_reference_run_fails;
   let rec = input.data.do_recalibation_now;
@@ -364,40 +364,40 @@ function encodeDownlink(input) {
   let port = Number(input.fPort);
   switch (port) {
     case 1:
-      downlink = encode_port_1(input);
+      downlink = micropelt_mlr003_encode_port_1(input);
       break;
     case 2:
-      downlink = encode_port_2();
+      downlink = micropelt_mlr003_encode_port_2();
       break;
     case 3:
-      downlink = encode_port_3(input);
+      downlink = micropelt_mlr003_encode_port_3(input);
       break;
     case 4:
-      downlink = encode_port_4(input);
+      downlink = micropelt_mlr003_encode_port_4(input);
       break;
     case 5:
-      downlink = encode_port_5(input);
+      downlink = micropelt_mlr003_encode_port_5(input);
       break;
     case 6:
-      downlink = encode_port_6(input);
+      downlink = micropelt_mlr003_encode_port_6(input);
       break;
     case 7:
-      downlink = encode_port_7(input);
+      downlink = micropelt_mlr003_encode_port_7(input);
       break;
     case 8:
-      downlink = encode_port_8(input);
+      downlink = micropelt_mlr003_encode_port_8(input);
       break;
     case 9:
-      downlink = encode_port_9(input);
+      downlink = micropelt_mlr003_encode_port_9(input);
       break;
     case 10:
-      downlink = encode_port_10(input);
+      downlink = micropelt_mlr003_encode_port_10(input);
       break;
     case 11:
-      downlink = encode_port_11(input);
+      downlink = micropelt_mlr003_encode_port_11(input);
       break;
     case 15:
-      downlink = encode_port_15(input);
+      downlink = micropelt_mlr003_encode_port_15(input);
       break;
     default:
       return {
@@ -408,4 +408,69 @@ function encodeDownlink(input) {
     bytes: downlink,
     fPort: input.fPort,
   };
+}
+function Dragino_lht65_encode_port_1(input) {
+  let interval = input.data.transmit_interval_time; // in minutes
+  let bytes = [0, 0, 0];
+  if (interval < 1 || interval > 16777215) {
+    throw new Error("Transmit interval time out of range (1-16777215 minutes)");
+  }
+  bytes[0] = (interval >> 16) & 0xFF; // First byte
+  bytes[1] = (interval >> 8) & 0xFF; // Second byte
+  bytes[2] = interval & 0xFF; // Third byte
+  return bytes;
+}
+function Dragino_lht65_encode_port_40(input) {
+  let timeSync = input.data.time_sync_mode; // boolean value
+  let bytes = [0];
+  if (timeSync < 1 || timeSync > 255) {
+    throw new Error("Time sync mode out of range (1-255)");
+  }
+  bytes[0] = timeSync; // Set the time sync mode
+  return bytes;
+}
+function Dragino_lht65_encode_port_41(input) {
+ let interval = input.data.time_sync_interval; // in days
+  let bytes = [0, 0, 0];
+  if (interval < 1 || interval > 255) {
+    throw new Error("Time sync interval out of range (1-255 days)");
+  }
+  bytes[0] = interval; // Set the time sync interval
+  return bytes;
+}
+function Dragino_lht65_encode_port_48(input) {
+ let time = Math.floor(new Date(input.data.set_system_time).getTime() / 1000);
+ console.log("Encoded time:", time);
+  let bytes = [0, 0, 0, 0, 0];
+  if (time < 0 || time > 4294967295) {
+    throw new Error("System time out of range (0-4294967295 seconds since epoch)");
+  }
+  bytes[0] = 0; // First byte
+  bytes[1] = (time >> 24) & 0xFF; // Second byte
+  bytes[2] = (time >> 16) & 0xFF; // Third byte
+  bytes[3] = (time >> 8) & 0xFF;// Fourth byte
+  bytes[4] = time & 0xFF; // Reserved byte
+  return bytes;
+}
+function Dragino_lht65_encode_port_162(input) {
+  let bytes = [0, 0, 0, 0, 0];
+  return bytes;
+}
+function Dragino_lht65_encode_port_163(input) {
+ let clear = input.data.clear_flash_record; // boolean value
+  let bytes = [0];
+  if (clear < 1 || clear > 255) {
+    throw new Error("clear flash record out of range (1-255)");
+  }
+  bytes[0] = clear; // Set the time sync mode
+  return bytes;
+}
+function Dragino_lht65_encode_port_168(input) {
+ let externalSensor = input.data.external_sensor_mode; // boolean value
+  let bytes = [0];
+  if (externalSensor < 1 || externalSensor > 255) {
+    throw new Error("clear flash record out of range (1-255)");
+  }
+  bytes[0] = externalSensor; // Set the time sync mode
+  return bytes;
 }

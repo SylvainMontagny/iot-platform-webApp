@@ -11,17 +11,18 @@
       <nav class="sidebar">
         <div class="logo">
           <h2>USMB IoT Manager</h2>
+          <div class="nav-links nav-settings"> 
+            <li class = "nav-settings-section">
+                <a href="#settings" class="active">Settings</a>
+            </li>
+          </div>
           <div class="tenant-select">
             <span class="tenant-select-title">Tenant</span>
-            <select name="tenant" id="tenant">
-              <!-- Empty for now -->
-            </select>
+            <select name="tenant" id="tenant"></select>
           </div>
           <div class="application-select">
             <span class="tenant-select-title">Application</span>
-            <select name="application" id="application">
-              <!-- Empty for now -->
-            </select>
+            <select name="application" id="application"></select>
           </div>
         </div>
         <ul class="nav-links">
@@ -29,7 +30,7 @@
             <span class="nav-section-title">Provisioning</span>
             <ul class="submenu">
               <li>
-              <a href="#add-device">Add device</a>
+              <a href="#add-device">Import devices</a>
               </li>
             </ul>
           </li>
@@ -37,13 +38,10 @@
             <span class="nav-section-title">Control</span>
             <ul class="submenu">
               <li>
-                <a href="#thermostat" class="active">Micropelt-mlr003</a>
+                <a href="#thermostat" >Micropelt-mlr003</a>
               </li>
               <li><a href="#temperature">Dragino-lht65</a></li>
             </ul>
-          </li>
-          <li class = "nav-settings-section">
-              <a href="#settings">Settings</a>
           </li>
         </ul>
       </nav>
@@ -52,7 +50,7 @@
           <h1>Thermostatic Valve Device Management</h1>
           <div class="page-sections">
             <!-- Settings Section -->
-            <section class="settings-section" style="display: none;">
+            <section class="settings-section">
               <h2>Settings</h2>
               <form class="settings-form">
                 <div class="form-row">
@@ -77,13 +75,14 @@
                     </div>
                   </div>
                 </div>
-                <button type="submit" class="save-button">Save</button>
+                <button type="submit" class="save-button" id="test-connection">Test connection</button>
+                <button type="submit" class="save-button" id="save-credentials">Save credentials</button>
                 <div class="settings-message" style="margin-left: 1rem"></div>
               </form>
             </section>
 
-             <!-- Device Settings Section -->
-            <section class="device-settings-section">
+             <!-- Device Settings Section 
+            <section class="device-settings-section" style="display: none;">
               <h2>Device settings</h2>
               <form class="device-settings-form">
                 <div class="form-row">
@@ -101,7 +100,7 @@
                   </div>
                 </div>
               </form>
-            </section>
+            </section> -->
 
             <!-- Add Device Section -->
             <section class="add-device-section" style="display: none;">
@@ -152,12 +151,12 @@
                       </div>
                   </div>
                 </div>
-                <button type="submit" class="save-button">Add Device</button>
+                <button type="submit" class="save-button">Import Devices</button>
               </form>
             </section>
 
             <!-- Action Section -->
-            <section class="action-section">
+            <section class="action-section" style="display: none;">
               <div class="action-header">
                 <h2>Actions</h2>
                 <select id="action-type-select">
@@ -181,7 +180,7 @@
             </section>
 
             <!-- Device Section -->
-            <section class="device-section">
+            <section class="device-section" style="display: none;">
               <div class="device-header">
                 <h2>Devices</h2>
                 <div class="buttons">
