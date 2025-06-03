@@ -445,15 +445,46 @@ function Dragino_lht65_encode_port_48(input) {
   if (time < 0 || time > 4294967295) {
     throw new Error("System time out of range (0-4294967295 seconds since epoch)");
   }
-  bytes[0] = 0; // First byte
-  bytes[1] = (time >> 24) & 0xFF; // Second byte
-  bytes[2] = (time >> 16) & 0xFF; // Third byte
-  bytes[3] = (time >> 8) & 0xFF;// Fourth byte
-  bytes[4] = time & 0xFF; // Reserved byte
+  bytes[0] = 0; 
+  bytes[1] = (time >> 24) & 0xFF; 
+  bytes[2] = (time >> 16) & 0xFF;
+  bytes[3] = (time >> 8) & 0xFF;
+  bytes[4] = time & 0xFF; 
   return bytes;
 }
 function Dragino_lht65_encode_port_162(input) {
-  let bytes = [0, 0, 0, 0, 0];
+  let mode = input.data.external_sensor_mode;
+  let interrupt_mode = input.data.interrupt_mode;
+  let counting_mode = input.data.counting_mode;
+  let time_before_sampling = input.data.time_before_sampling;
+  let bytes = [0, 0, 0];
+
+  switch (mode) {
+    case 1792:  //  7
+      bytes[0] = 0;
+      bytes[1] = (mode >> 8) & 0xFF;
+      bytes[2] = counting_mode & 0xFF;
+      break;
+    case 524544: // 8
+      bytes[0] = (mode >> 16) & 0xFF;
+      bytes[1] = (mode >> 8) & 0xFF;
+      bytes[2] = counting_mode & 0xFF;
+      break;
+    case 393216: // 6
+      bytes[0] = (mode >> 16) & 0xFF;
+      bytes[1] = (time_before_sampling >> 8) & 0xFF;
+      bytes[2] = time_before_sampling & 0xFF;
+      break;
+    case 1024:  // 4
+      bytes[0] = 0;
+      bytes[1] = (mode >> 8) & 0xFF;
+      bytes[2] = interrupt_mode & 0xFF;
+      break;
+    default:
+      bytes[0] = 0;
+      bytes[1] = 0;
+      bytes[2] = mode & 0xFF;
+  }
   return bytes;
 }
 function Dragino_lht65_encode_port_163(input) {

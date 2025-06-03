@@ -227,14 +227,15 @@ function handleSectionChange(section) {
         break;
       case "Dragino-lht65":
         select.innerHTML = `<option value="1">Transmit Interval Time</option>
-                            <option value="168">
-                              Enable/Disable uplink DS18B20 probe ID
-                            </option>
-                            <option value="48">Set system time</option>
                             <option value="40">Time Sync Mode</option>
                             <option value="41">Time Sync Interval</option>
-                            <option value="163">Clear Flash Record</option>`;
-                          //<option value="162">External Sensor Mode</option>
+                            <option value="48">Set system time</option>
+                            <option value="162">External Sensor Mode</option>
+                            <option value="163">Clear Flash Record</option>
+                            <option value="168">
+                              Enable/Disable uplink DS18B20 probe ID
+                            </option>`;
+                          //
         break;
       default:
         console.warn("Unknown device type:", currentDeviceType);
@@ -598,6 +599,46 @@ const actionForms = {
       ]
     },
     162:{
+      fields: [
+        {
+          label: "External Sensor Mode",
+          name: "external_sensor_mode",
+          type: "select",
+          options: [
+            { label: "Interrupt mode", value: 1024 },
+            { label: "ADC sensor mode", value: 393216 },
+            { label: "4 Byte counting mode", value: 524544 },
+            { label: "counting mode", value: 1792 },
+            { label: "Illumination sensor mode", value: 5 },
+            { label: "external DS18B20 with timestamp", value: 9 },
+            { label: "Sensor mode 1", value: 1 }
+          ],
+        },
+        {
+          label: "Interrupt Mode",
+          name: "interrupt_mode",
+          type: "select",
+          options: [
+            { label: "Falling", value: 2 },
+            { label: "Rising", value: 3 },
+            { label: "Both", value: 1 },
+          ],
+        },
+        {
+          label: "Counting Mode",
+          name: "counting_mode",
+          type: "select",
+          options: [
+            { label: "Falling", value: 0 },
+            { label: "Rising", value: 1 }
+          ],
+        },
+        {
+          label: "Time before sampling",
+          name: "time_before_sampling",
+          type: "number"
+        }
+      ]
     },
     163:{
       fields: [
@@ -641,7 +682,11 @@ function renderActionForm(port) {
   let row = null;
   config.fields.forEach((field, idx) => {
     // Nouvelle ligne tous les 3 champs
-    if (idx % 3 === 0) {
+    if (idx % 3 === 0 && currentDeviceType != "Dragino-lht65") {
+      row = document.createElement("div");
+      row.className = "form-row";
+      form.appendChild(row);
+    }else if (currentDeviceType == "Dragino-lht65" && idx === 0) {
       row = document.createElement("div");
       row.className = "form-row";
       form.appendChild(row);
@@ -683,6 +728,35 @@ function renderActionForm(port) {
     group.appendChild(input);
     row.appendChild(group);
   });
+
+  const SelectDraginoSensorMode = document.querySelector(".action-form #external_sensor_mode");
+  if (SelectDraginoSensorMode) {
+    SelectDraginoSensorMode.addEventListener("change", (e) => {
+      const timeBeforeSamplingInput = document.querySelector(".action-form #time_before_sampling").closest(".form-group");
+      const interruptModeSelect = document.querySelector(".action-form #interrupt_mode").closest(".form-group");
+      const countingModeSelect = document.querySelector(".action-form #counting_mode").closest(".form-group");
+      const selectedValue = e.target.value;
+      if (selectedValue === "1792" || selectedValue === "524544") {
+        timeBeforeSamplingInput.style.display = "none";
+        interruptModeSelect.style.display = "none";
+        countingModeSelect.style.display = "flex";
+      } else if (selectedValue === "1024") {
+        timeBeforeSamplingInput.style.display = "none";
+        interruptModeSelect.style.display = "flex";
+        countingModeSelect.style.display = "none";
+      } else if (selectedValue === "393216") {
+        timeBeforeSamplingInput.style.display = "flex";
+        interruptModeSelect.style.display = "none";
+        countingModeSelect.style.display = "none";
+      } else {
+        timeBeforeSamplingInput.style.display = "none";
+        interruptModeSelect.style.display = "none";
+        countingModeSelect.style.display = "none";
+      }
+
+    });
+    SelectDraginoSensorMode.dispatchEvent(new Event("change")); // Pour initialiser l'affichage
+  }
 }
 
 async function setTenantOptions() {
