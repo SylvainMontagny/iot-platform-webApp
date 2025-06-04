@@ -634,9 +634,13 @@ const actionForms = {
           ],
         },
         {
-          label: "Time before sampling",
+          label: "Time before sampling (ms)",
           name: "time_before_sampling",
-          type: "number"
+          type: "number",
+          min: 0,
+          max: 65535,
+          value: 1000,
+          step: 1,
         }
       ]
     },
@@ -996,6 +1000,15 @@ async function testConnection() {
 // Initialisation du formulaire d'action au chargement
 document.addEventListener("DOMContentLoaded", () => {
 
+    // Empêcher la soumission du formulaire avec la touche Entrée
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+            }
+        });
+    });
+
   //Ajouter l'écouteur d'événement pour la selection du tenant
   const tenantSelect = document.querySelector(".tenant-select #tenant");
   tenantSelect.addEventListener("change", async (e) => {
@@ -1292,6 +1305,52 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
   
+  document
+    .querySelector(".add-device-form #add-tag-button")
+    .addEventListener("click", async (e) => {
+      e.preventDefault();
+      const elements = ["tag-name-input", "tag-value-input"];
+
+      const tagDiv = document.querySelector(".tags-container");
+      const formRow = document.createElement("div");
+      formRow.className = "form-row";
+      tagDiv.appendChild(formRow);
+
+      elements.forEach((element) => {
+      const formgroup = document.createElement("div");
+      formgroup.className = "form-group";
+      formRow.appendChild(formgroup);
+
+      const label = document.createElement("label");
+      label.htmlFor = element;
+      label.textContent = element.replace(/-/g, " ").replace("tag ", "Tag ").replace("input", "");
+      formgroup.appendChild(label);
+
+      const tagNameInput = document.createElement("input");
+      tagNameInput.type = "text";
+      tagNameInput.className = element;
+      tagNameInput.placeholder = "Enter tag name";
+      formgroup.appendChild(tagNameInput);
+      });
+      
+      const Buttonformgroup = document.createElement("div");
+      Buttonformgroup.className = "form-group";
+      formRow.appendChild(Buttonformgroup);
+
+      const buttonLabel = document.createElement("label");
+      buttonLabel.htmlFor = "remove-tag-btn";
+      buttonLabel.textContent = "Delete tag";
+      Buttonformgroup.appendChild(buttonLabel);
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "remove-tag-btn";
+      removeBtn.textContent = "x";
+      removeBtn.addEventListener("click", () => {
+        removeBtn.closest(".form-row").remove();
+      });
+      Buttonformgroup.appendChild(removeBtn);
+  });
+        
   // Ajouter un device manuellement
   document
     .querySelector(".add-device-form")
@@ -1302,12 +1361,23 @@ document.addEventListener("DOMContentLoaded", () => {
       const deviceAppKey = document.getElementById("device-app-key")?.value;
       const deviceAppEUI = document.getElementById("device-app-eui")?.value;
       const deviceprofile = document.getElementById("device-profile")?.value;
+      const tagsInput = document.querySelectorAll(".tags-container .form-row");
+      const tags = {};
+      if (tagsInput){
+        tagsInput.forEach((tag) => {
+          const tagName = tag.querySelector(".tag-name-input")?.value;
+          const tagValue = tag.querySelector(".tag-value-input")?.value;
+          if (tagName && tagValue) {
+            tags[tagName] = tagValue;
+          }
+        });
+      }
 
       try {
         const res = await fetch("/api/adddevice", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deviceName, deviceEUI, deviceAppKey, deviceAppEUI, deviceprofile }),
+          body: JSON.stringify({ deviceName, deviceEUI, deviceAppKey, deviceAppEUI, deviceprofile, tags }),
         });
 
         const data = await res.json();
@@ -1315,6 +1385,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.success) {
           alert("Device added successfully!");
           refreshDevices();
+          // Réinitialiser le formulaire après l'ajout
+          document.querySelector(".add-device-form").reset();
+          const tagsContainer = document.querySelector(".tags-container");
+          tagsContainer.innerHTML = ""; // Effacer les tags précédents
         } else {
           alert("Erreur : " + (data.message || "Impossible d'ajouter le device"));
         }
@@ -1322,6 +1396,43 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Erreur lors de l'ajout du device:", error);
         alert("Erreur de connexion. Veuillez réessayer.");
       }
+    });
+
+  //  Ajout de vérification de la saisie pour l'ajout des devices
+  document
+    .querySelector(".credentials-row")
+    .querySelectorAll('input').forEach((input) => {
+      
+      input.addEventListener("input", async (e) => {
+        
+        let maxLength;
+        switch (e.target.id){
+          case "device-app-key":
+            maxLength = 32;
+            break;
+          default:
+            maxLength = 16;
+        }
+        const regex = new RegExp(`^[0-9A-Fa-f]{${maxLength}}$`)
+        const isValid = regex.test(e.target.value);
+    
+        if (!isValid) {
+          e.target.style["border-color"] = "red";
+          e.target.value.split('').forEach(char => {
+            const reg = /[0-9A-Fa-f]/;
+            const isValid = reg.test(char);
+            if (!isValid) {
+              e.target.value = e.target.value.replaceAll(char,'');
+            }
+        });
+        if (e.target.value.length >= maxLength) {
+          e.target.value = e.target.value.slice(0, maxLength)
+          e.target.dispatchEvent(new Event('input'));
+        }
+        } else {
+          e.target.style["border-color"] = "#dee2e6";
+        }
+      });
     });
 
 // Ajouter un device depuis un fichier CSV

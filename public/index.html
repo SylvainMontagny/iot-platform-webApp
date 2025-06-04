@@ -116,23 +116,24 @@
                     <select name="device-profile" id="device-profile"></select>
                   </div>
                 </div>  
-                <div class="form-row">
+                <div class="form-row credentials-row">
                   <div class="form-group">
                     <label for="device-eui">Device EUI</label>
-                    <input type="text" id="device-eui" name="device-eui" maxlength="16" pattern="[A-Fa-f0-9]{16}" title="Entrez 16 caractères hexadécimaux" placeholder="Device EUI" />
+                    <input type="text" id="device-eui" name="device-eui" pattern="[A-Fa-f0-9]{16}" title="Entrez 16 caractères hexadécimaux" placeholder="Device EUI" />
                   </div>
                   <div class="form-group">
                     <label for="device-app-eui">Device AppEUI</label>
-                    <input type="text" id="device-app-eui" name="device-app-eui" maxlength="16" pattern="[A-Fa-f0-9]{16}" placeholder="Device AppEUI" title="Entrez 16 caractères hexadécimaux"/>
+                    <input type="text" id="device-app-eui" name="device-app-eui" pattern="[A-Fa-f0-9]{16}" placeholder="Device AppEUI" title="Entrez 16 caractères hexadécimaux"/>
                   </div>
                   <div class="form-group">
                     <label for="device-app-key">Device App Key</label>
-                    <input type="text" id="device-app-key" name="device-app-key" maxlength="32" pattern="[A-Fa-f0-9]{32}" placeholder="Device App Key" title="Entrez 32 caractères hexadécimaux"/>
+                    <input type="text" id="device-app-key" name="device-app-key" pattern="[A-Fa-f0-9]{32}" placeholder="Device App Key" title="Entrez 32 caractères hexadécimaux"/>
                   </div>
                 </div>
-                <div class="form-row">   
-                  <!-- Empty for now -->
+                <div class="tags-container">
+
                 </div>
+                <button type="button" class="save-button" id="add-tag-button">Add tag</button>
                 <button type="submit" class="save-button">Add Device</button>
               </form>
             </section>
@@ -249,6 +250,7 @@
                 </table>
               </div>
             </section>
+
           </div>
         </div>
       </main>

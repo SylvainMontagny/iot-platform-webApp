@@ -206,12 +206,17 @@ h2 {
   letter-spacing: 0.5px;
 }
 
-.form-group input {
+.form-group input,
+.form-group button {
   padding: 0.5rem;
   border: 1px solid #dee2e6;
   border-radius: 4px;
   font-size: 0.9rem;
   background-color: white;
+}
+
+.form-group button:hover {
+  background-color: #e9ecef;
 }
 
 .form-group input:focus {

@@ -372,6 +372,19 @@ async function addDeviceFromCsv(csvString) {
     deviceAppKey: row["app_key"],
     deviceprofile: row["dev_profile"]
   }));
+  let devnum = 0;
+  parsedData.data.forEach((row) => {
+      // Si des tags sont présents, on les ajoute
+      const tags = {};
+      Object.keys(row).forEach((key) => {
+        if (key.startsWith("tag_")) {
+          const tagKey = key.replace("tag_", "");
+          tags[tagKey] = row[key];
+        }
+      });
+      devices[devnum].tags = tags;
+      devnum++;
+  });
 
    const deviceProfiles = await listDeviceProfiles();
 
@@ -387,6 +400,28 @@ async function addDeviceFromCsv(csvString) {
   });
   
   devices.forEach(device => {
+    const propertiesToCheck = ['deviceEUI', 'deviceAppKey', 'deviceAppEUI'];
+    propertiesToCheck.forEach( property =>{
+
+      const maxLength = property === 'deviceAppKey' ? 32 : 16;
+      const regex = new RegExp(`^[0-9A-Fa-f]{${maxLength}}$`)
+        
+      const isValid = regex.test(device[property])        
+      if (!isValid) {
+        device[property].split('').forEach(char => {
+          const reg = /[0-9A-Fa-f]/;
+          const isValid = reg.test(char);
+          if (!isValid) {
+            device[property] = device[property].replaceAll(char,'');
+          }
+      });
+      if (device[property].length >= maxLength) {
+        device[property] = device[property].slice(0, maxLength)
+      }
+      }
+    });
+
+
     if (!device.deviceEUI || !device.deviceAppEUI || !device.deviceName || !device.deviceAppKey || !device.deviceprofile) {
       throw new Error("Missing required fields in device data");
     }
