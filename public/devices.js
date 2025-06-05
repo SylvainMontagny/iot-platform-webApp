@@ -1,22 +1,45 @@
+const profileNames = {
+  "micropelt-mlr003": "micropelt-mlr003",
+  "dragino-lht65": "Dragino-lht65"
+};
+
 // État du type de device actif
-let currentDeviceType = "micropelt-mlr003"; // Par défaut, on affiche les valves
+let currentDeviceType = profileNames["micropelt-mlr003"]; // Par défaut, on affiche les valves
 
 // Fonction pour récupérer les devices depuis l'API
-async function fetchDevices() {
-  try {
-    const response = await fetch(`/api/getdevices/type/${currentDeviceType}`);
-    const data = await response.json();
+async function fetchDevices(deviceType) {
+  if (deviceType){
+    try {
+      const response = await fetch(`/api/getdevices/type/${deviceType}`);
+      const data = await response.json();
 
-    if (data.success) {
-      return data.devices;
-    } else {
-      throw new Error(
-        data.message || "Erreur lors de la récupération des devices"
-      );
+      if (data.success) {
+        return data.devices;
+      } else {
+        throw new Error(
+          data.message || "Erreur lors de la récupération des devices"
+        );
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      return [];
     }
-  } catch (error) {
-    console.error("Erreur:", error);
-    return [];
+  }else{
+    try {
+      const response = await fetch(`/api/getdevices`);
+      const data = await response.json();
+
+      if (data.success) {
+        return data.devices;
+      } else {
+        throw new Error(
+          data.message || "Erreur lors de la récupération des devices"
+        );
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      return [];
+    }
   }
 }
 
@@ -136,12 +159,20 @@ let loadedDevices = [];
 
 // Fonction pour rafraîchir les devices
 async function refreshDevices() {
-  const devices = await fetchDevices();
+  const section = document.querySelector(".nav-links  li.active  a.active").getAttribute("href").slice(1); 
+  let devices;
+  if (section === "delete-device"){
+    devices = await fetchDevices(null);
+  }else{
+   devices = await fetchDevices(currentDeviceType);
+  }
   loadedDevices = devices; // <-- Ajouté
   updateDevicesTable(devices);
 }
 // Fonctions pour gérer l'affichage du changement de section
 function ControlDisplay() {
+  document.querySelector(".delete-button#delete-device-btn").style.display = "none";
+  document.querySelector(".send-button#send-action-btn").style.display = "flex";
   document.querySelectorAll(".page-sections section").forEach((section) => {
     let isControlRelated =  section.classList.contains("device-settings-section") || 
                             section.classList.contains("device-section") || 
@@ -155,10 +186,24 @@ function SettingsDisplay() {
   !isSettingsRelated ? section.style.display = "none" : section.style.display = "block";
   });
 }
-function ProvisionningDisplay() {
+function ProvisionningDisplay(action) {
+  let isProvisionningRelated;
   document.querySelectorAll(".page-sections section").forEach((section) => {
-    let isProvisionningRelated =  section.classList.contains("add-device-section") || 
+    switch (action) {
+      case "add":
+        isProvisionningRelated =  section.classList.contains("add-device-section") || 
                                   section.classList.contains("add-device-from-csv-section");
+        break;
+      case "delete":
+        
+        document.querySelector(".delete-button#delete-device-btn").style.display = "flex";
+        document.querySelector(".send-button#send-action-btn").style.display = "none";
+        isProvisionningRelated = section.classList.contains("device-section")
+        break;
+      default:
+        break;
+    }
+    
     !isProvisionningRelated ? section.style.display = "none" : section.style.display = "block";
   });
 }
@@ -166,7 +211,7 @@ function ProvisionningDisplay() {
 function handleSectionChange(section) {
   // Mettre à jour le type de device actif
   currentDeviceType =
-    section === "thermostat" ? "micropelt-mlr003" : "Dragino-lht65";
+    section === "micropelt-mlr003" ? profileNames["micropelt-mlr003"] : profileNames["dragino-lht65"];
 
   // Mettre à jour la classe active dans le menu pour les liens
   document.querySelectorAll(".nav-links a").forEach((link) => {
@@ -184,17 +229,21 @@ function handleSectionChange(section) {
   const title = document.querySelector("h1");
   if (title) {
     switch (section) {
-      case "thermostat":
-        title.textContent = "Thermostatic Valve Device Management";
+      case "micropelt-mlr003":
+        title.textContent = "Micropelt-mlr003 Device Management";
         ControlDisplay();
         break;
-      case "temperature":
-        title.textContent = "Temperature Sensor Device Management";
+      case "dragino-lht65":
+        title.textContent = "Dragino-lht65 Device Management";
         ControlDisplay();
         break;
       case "add-device":
-        title.textContent = "Add a new device";
-        ProvisionningDisplay();
+        title.textContent = "Add new devices";
+        ProvisionningDisplay("add");
+        break;
+      case "delete-device":
+        title.textContent = "Delete devices";
+        ProvisionningDisplay("delete");
         break;
       case "settings":
         title.textContent = "Settings";
@@ -1136,11 +1185,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const file = e.target.files[0];
     const fileName = file.name;
     const dropZoneText = document.querySelector('.drop-zone-text');
-    const filedisplay = document.createElement('div');
+    const filedisplay = dropZoneText.querySelector("div") || document.createElement('div');
+    filedisplay.innerHTML ="";
     if (file.size / 1024 > 1) {
       filedisplay.innerHTML = `<strong>Fichier sélectionné :</strong> ${fileName} ${(file.size / 1024).toFixed(2)} Ko`;
     }else {
-    filedisplay.innerHTML = `<strong>Fichier sélectionné :</strong> ${fileName} ${file.size} octets`;
+      filedisplay.innerHTML = `<strong>Fichier sélectionné :</strong> ${fileName} ${file.size} octets`;
     }
     dropZoneText.appendChild(filedisplay);
   });
@@ -1267,6 +1317,53 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("Form data:", formData);
     });
   }
+
+  document.getElementById("delete-device-btn")
+    .addEventListener('click', async ()=>{
+      // Récupère les devices sélectionnés
+      const checkedBoxes = document.querySelectorAll(
+        ".device-checkbox:checked"
+      );
+      if (checkedBoxes.length === 0) {
+        alert("Sélectionnez au moins un device.");
+        return;
+      }
+
+      let devices = [];
+      checkedBoxes.forEach((cb) => {
+        const idx = Number(cb.getAttribute("data-device-index"));
+        const device = loadedDevices[idx];
+        if (!device) return;
+        const dev_eui = device.devEui || device.dev_eui || device.devEUI;
+        if (!dev_eui) return;
+
+        devices.push(dev_eui);
+      });
+
+      // Envoi de l'action à l'API
+      try {
+        const response = await fetch("/api/deletedevices", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(devices),
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          alert(
+            "Erreur lors de l'envoi : " + (error.message || response.statusText)
+          );
+          return;
+        }
+
+        const result = await response.json();
+        console.log("Réponse du back :", result);
+      } catch (err) {
+        alert("Erreur réseau : " + err.message);
+      }
+      refreshDevices();
+    });
+
 
   const actionTypeSelect = document.getElementById("action-type-select");
   if (actionTypeSelect) {
@@ -1442,11 +1539,10 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const fileInput = document.querySelector(".file-input");
       const file = fileInput.files[0];
-
-      const csvString = await file.text();
-      alert("Fichier CSV chargé avec succès : " + csvString);
-
       try {
+      
+        const csvString = await file.text();
+
         const res = await fetch("/api/adddevicefromcsv", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

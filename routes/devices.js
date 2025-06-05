@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 
-const { getDevices, getDeviceDetails, updatedevice, listDeviceProfiles, listTenants, getTenantInfo, listApplication, adddevice, addDeviceFromCsv, sendDownlink } = require('../chirpstack');
+const { getDevices, getDeviceDetails, updatedevice, listDeviceProfiles, listTenants, getTenantInfo, listApplication, adddevice, addDeviceFromCsv, deleteDevice, sendDownlink } = require('../chirpstack');
 const { credentials } = require('@grpc/grpc-js');
 
 // Get all devices
@@ -160,6 +160,29 @@ router.post('/adddevicefromcsv', async (req, res) => {
     try {
         const result = await addDeviceFromCsv(csvString);
         res.json(result);
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+router.post('/deletedevices', async (req, res) => {
+    const devices = req.body; 
+    
+    if (!Array.isArray(devices) || devices.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Requête invalide : une liste de devices est requise",
+        });
+    }
+
+    try {
+        const promises = devices.map((dev_eui) => 
+            deleteDevice(dev_eui)
+        );
+        
+        // Wait for all the promises to resolve (or reject)
+        const ids = await Promise.all(promises);
+        res.json({ success: true, ids });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }

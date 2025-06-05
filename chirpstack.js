@@ -70,7 +70,7 @@ async function getDevices() {
   return new Promise((resolve, reject) => {
     const req = new device_pb.ListDevicesRequest();
     req.setApplicationId(applicationId);
-    req.setLimit(100);
+    req.setLimit(1000);
 
     deviceService.list(req, metadata, async (err, resp) => {
       if (err) return reject(err);
@@ -429,6 +429,36 @@ async function addDeviceFromCsv(csvString) {
   });
   return { success: true, message: "Devices added successfully" };
 }
+
+// Envoie un downlink
+function deleteDevice(devEui) {
+  const { server, apiToken } = loadSettings();
+  if (!server || !apiToken) {
+    throw new Error("Missing configuration: URL_SERVER or API_TOKEN not set.");
+  }
+  const metadata = new grpc.Metadata();
+  metadata.set("authorization", "Bearer " + apiToken);
+
+  const deviceService = createGrpcClient(
+    device_grpc.DeviceServiceClient,
+    server
+  );
+
+  return new Promise((resolve, reject) => {
+
+    const deleteReq = new device_pb.DeleteDeviceRequest();
+    deleteReq.setDevEui(devEui);
+
+    deviceService.delete(deleteReq, metadata, (err, resp) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(resp);
+    });
+  });
+}
+
+
 // Récupère le nom du device profile
 function getDeviceProfileName(deviceProfileId) {
   const { server, apiToken } = loadSettings();
@@ -489,4 +519,4 @@ function sendDownlink(devEui, payloadArray, fPort = 1, confirmed = false) {
   });
 }
 
-module.exports = { getDevices, getDeviceDetails, updatedevice, listDeviceProfiles, listApplication, listTenants, getTenantInfo, adddevice, addDeviceFromCsv, sendDownlink };
+module.exports = { getDevices, getDeviceDetails, updatedevice, listDeviceProfiles, listApplication, listTenants, getTenantInfo, adddevice, addDeviceFromCsv, deleteDevice, sendDownlink };
