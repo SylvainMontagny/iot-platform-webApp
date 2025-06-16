@@ -1,10 +1,11 @@
 const profileNames = {
   "micropelt-mlr003": "micropelt-mlr003",
-  "dragino-lht65": "Dragino-lht65"
+  "dragino-lht65": "Dragino-lht65",
+  "mclimate-vicki": "MClimate-vicki"
 };
 
 // État du type de device actif
-let currentDeviceType = profileNames["micropelt-mlr003"]; // Par défaut, on affiche les valves
+let currentDeviceType = "micropelt-mlr003"; // Par défaut, on affiche les valves
 
 // Fonction pour récupérer les devices depuis l'API
 async function fetchDevices(deviceType) {
@@ -159,12 +160,12 @@ let loadedDevices = [];
 
 // Fonction pour rafraîchir les devices
 async function refreshDevices() {
-  const section = document.querySelector(".nav-links  li.active  a.active").getAttribute("href").slice(1); 
+  const section = document.querySelector(".nav-links  li.active  a.active")?.getAttribute("href").slice(1); 
   let devices;
   if (section === "delete-device"){
     devices = await fetchDevices(null);
   }else{
-   devices = await fetchDevices(currentDeviceType);
+   devices = await fetchDevices(profileNames[currentDeviceType] ?? null);
   }
   loadedDevices = devices; // <-- Ajouté
   updateDevicesTable(devices);
@@ -210,8 +211,7 @@ function ProvisionningDisplay(action) {
 // Fonction pour gérer le changement de section
 function handleSectionChange(section) {
   // Mettre à jour le type de device actif
-  currentDeviceType =
-    section === "micropelt-mlr003" ? profileNames["micropelt-mlr003"] : profileNames["dragino-lht65"];
+  currentDeviceType = section;
 
   // Mettre à jour la classe active dans le menu pour les liens
   document.querySelectorAll(".nav-links a").forEach((link) => {
@@ -235,6 +235,10 @@ function handleSectionChange(section) {
         break;
       case "dragino-lht65":
         title.textContent = "Dragino-lht65 Device Management";
+        ControlDisplay();
+        break;
+      case "mclimate-vicki":
+        title.textContent = "MClimate-vicki Device Management";
         ControlDisplay();
         break;
       case "add-device":
@@ -274,8 +278,20 @@ function handleSectionChange(section) {
                             <option value="11">Beep</option>
                             <option value="15">On/Off</option>`;
         break;
-      case "Dragino-lht65":
+      case "dragino-lht65":
         select.innerHTML = `<option value="1">Transmit Interval Time</option>
+                            <option value="40">Time Sync Mode</option>
+                            <option value="41">Time Sync Interval</option>
+                            <option value="48">Set system time</option>
+                            <option value="162">External Sensor Mode</option>
+                            <option value="163">Clear Flash Record</option>
+                            <option value="168">
+                              Enable/Disable uplink DS18B20 probe ID
+                            </option>`;
+                          //
+        break; 
+      case "mclimate-vicki":
+        select.innerHTML = `<option value="1">Transmit Inter Time</option>
                             <option value="40">Time Sync Mode</option>
                             <option value="41">Time Sync Interval</option>
                             <option value="48">Set system time</option>
@@ -294,7 +310,9 @@ function handleSectionChange(section) {
   const actionForm = document.getElementById("action-form");
   if (actionForm) {
     actionForm.innerHTML = ""; // Effacer le contenu précédent
-    renderActionForm(1); // Afficher le formulaire pour le port 1 par défaut
+    if (actionForms[currentDeviceType]){
+      renderActionForm(1); // Afficher le formulaire pour le port 1 par défaut
+    }
   }
   // Rafraîchir les devices avec le nouveau type
   refreshDevices();
@@ -587,7 +605,7 @@ const actionForms = {
       ],
     }
   },
-  "Dragino-lht65": {
+  "dragino-lht65": {
     1: {
       fields: [
         {
@@ -719,6 +737,9 @@ const actionForms = {
         }
       ]
     }
+  },
+  "mclimate-vicki":{
+
   }
 };
 
@@ -899,6 +920,7 @@ async function loadSettings() {
       tenantToken: settings.TENANT_TOKEN,
       tenantId: settings.TENANT_ID,
       applicationId: settings.APP_ID,
+      serverPort: settings.SERVER_PORT || "8080",
     };
   } catch {}
 }
@@ -913,17 +935,19 @@ async function loadSettings() {
  * await saveSettings();
  */
 async function saveSettings(settings) {
-  const { server, apiToken, tenantId, applicationId, tenantToken } = await loadSettings();
+  const { server, serverPort, apiToken, tenantId, applicationId, tenantToken } = await loadSettings();
   const tenantTokenCheckbox = document.querySelector(".settings-section #tenant-key-checkbox");
   const apiTokenInput = document.querySelector(".settings-section #api-token");
   const tenantIdInput = document.querySelector(".settings-section #tenant-id");
   const tenantIdSelect = document.querySelector(".tenant-select #tenant");
   const applicationSelect = document.querySelector(".application-select #application");
   const serverInput = document.querySelector(".settings-section #network-server");
+  const serverPortInput = document.querySelector(".settings-section #network-server-port");
 
   let API_TOKEN = apiToken || apiTokenInput.value;
   let TENANT_TOKEN = tenantToken || tenantTokenCheckbox.checked;
   let URL_SERVER = server || serverInput.value;
+  let SERVER_PORT = serverPort || (serverPortInput.value);
   let TENANT_ID = tenantId || (tenantTokenCheckbox.checked ? tenantIdInput.value : tenantIdSelect.value);
   let APP_ID = applicationId || applicationSelect.value;
 
@@ -944,6 +968,9 @@ async function saveSettings(settings) {
       case "APP_ID":
         APP_ID = applicationSelect.value;
         break;
+      case "SERVER_PORT":
+        SERVER_PORT = serverPortInput.value;
+        break;
       default:
         console.warn(`Unknown setting: ${setting}`);
         break;
@@ -954,7 +981,7 @@ async function saveSettings(settings) {
         const res = await fetch("/api/settings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ API_TOKEN, URL_SERVER, TENANT_TOKEN, TENANT_ID, APP_ID }),
+          body: JSON.stringify({ API_TOKEN, URL_SERVER, SERVER_PORT, TENANT_TOKEN, TENANT_ID, APP_ID }),
         });
 
         const data = await res.json();
@@ -1049,15 +1076,15 @@ async function testConnection() {
 // Initialisation du formulaire d'action au chargement
 document.addEventListener("DOMContentLoaded", () => {
 
-    // Empêcher la soumission du formulaire avec la touche Entrée
-    document.querySelectorAll('form').forEach(form => {
+  // Empêcher la soumission du formulaire avec la touche Entrée
+  document.querySelectorAll('form').forEach(form => {
         form.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
             }
         });
-    });
-
+  });
+  
   //Ajouter l'écouteur d'événement pour la selection du tenant
   const tenantSelect = document.querySelector(".tenant-select #tenant");
   tenantSelect.addEventListener("change", async (e) => {
@@ -1382,14 +1409,17 @@ document.addEventListener("DOMContentLoaded", () => {
           if (settings.URL_SERVER) {
             document.querySelector(".settings-section #network-server").value = settings.URL_SERVER;
           }
+          if (settings.SERVER_PORT) {
+            document.querySelector(".settings-section #network-server-port").value = settings.SERVER_PORT;
+          }
           if (settings.API_TOKEN && settings.URL_SERVER) {
-            // Initialiser les options des sélecteurs tenant et application
+
             await setTenantOptions();
             const tenantSelectDiv = document.querySelector(".tenant-select");
             tenantSelectDiv.style.display = "block";
           }
           if (settings.API_TOKEN && settings.URL_SERVER && settings.TENANT_ID) {
-            // Si les settings sont déjà chargés, on peut initialiser les options
+
             await setApplicationOptions();
             const applicationSelectDiv = document.querySelector(".application-select");
             applicationSelectDiv.style.display = "block";
@@ -1573,6 +1603,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const apiTokenInput = document.querySelector(".settings-section #api-token");
       const tenantIdInput = document.querySelector(".settings-section #tenant-id");
       const serverInput = document.querySelector(".settings-section #network-server");
+      const serverPortInput = document.querySelector(".settings-section #network-server-port");
       const inputs = document.querySelectorAll(".settings-form input");
       const msgDiv = document.querySelector(".settings-message");
       let data = {success: false, message: ""};
@@ -1585,11 +1616,11 @@ document.addEventListener("DOMContentLoaded", () => {
               alert("Veuillez entrer un Tenant ID.");
             }else if (tenantTokenCheckbox.checked) {
             
-              data = await saveSettings(["API_TOKEN", "URL_SERVER", "TENANT_ID",]);
+              data = await saveSettings(["API_TOKEN", "URL_SERVER", "TENANT_ID", "SERVER_PORT"]);
             
             } else if (!tenantTokenCheckbox.checked) {
             
-              data = await saveSettings(["API_TOKEN", "URL_SERVER"]);
+              data = await saveSettings(["API_TOKEN", "URL_SERVER", "SERVER_PORT"]);
 
             }
 

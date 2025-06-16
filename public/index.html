@@ -29,27 +29,25 @@
           <li class="nav-section">
             <span class="nav-section-title">Provisioning</span>
             <ul class="submenu">
-              <li>
-                <a href="#add-device">Import devices</a></li>
-              <li><a href="#delete-device">Delete devices</a>
-              </li>
+              <li><a href="#add-device">Import devices</a></li>
+              <li><a href="#delete-device">Delete devices</a></li>
             </ul>
           </li>
           <li class="nav-section">
             <span class="nav-section-title">Control</span>
             <ul class="submenu">
-              <li>
-                <a href="#micropelt-mlr003" >Micropelt-mlr003</a>
-              </li>
+              <li><a href="#micropelt-mlr003" >Micropelt-mlr003</a></li>
               <li><a href="#dragino-lht65">Dragino-lht65</a></li>
+             <!-- <li><a href="#mclimate-vicki">MClimate-vicki</a></li> -->
             </ul>
           </li>
         </ul>
       </nav>
       <main class="main-content">
         <div class="content">
-          <h1>Thermostatic Valve Device Management</h1>
+          <h1>Settings</h1>
           <div class="page-sections">
+
             <!-- Settings Section -->
             <section class="settings-section">
               <h2>Settings</h2>
@@ -60,12 +58,12 @@
                     <input type="text" id="network-server" name="network-server" />
                   </div>
                   <div class="form-group">
-                    <label for="api-token">API Token</label>
-                    <input type="password" id="api-token" name="api-token" />
+                    <label for="network-server-port">Server Port</label>
+                    <input type="number" id="network-server-port" name="network-server-port" min="0" max="65535" step="1" placeholder="Server Port"/>
                   </div>
                   <div class="form-group">
-                    <label for="tenant-id" id="tenant-id-label"  style="display: none;" >Tenant Id</label>
-                    <input type="text" id="tenant-id" name="tenant-id" style="display: none;" />
+                    <label for="api-token">API Token</label>
+                    <input type="password" id="api-token" name="api-token" />
                   </div>
                 </div>
                 <div class="form-row">
@@ -75,33 +73,18 @@
                       <input type="checkbox" id="tenant-key-checkbox" name="tenant-key-checkbox" />
                     </div>
                   </div>
+                  <div class="form-group">
+                    <label for="tenant-id" id="tenant-id-label"  style="display: none;" >Tenant Id</label>
+                    <input type="text" id="tenant-id" name="tenant-id" style="display: none;" />
+                  </div>
                 </div>
-                <button type="submit" class="save-button" id="test-connection">Test connection</button>
-                <button type="submit" class="save-button" id="save-credentials">Save credentials</button>
+                <div class="buttons-container">
+                  <button type="submit" class="save-button" id="test-connection">Test connection</button>
+                  <button type="submit" class="save-button" id="save-credentials">Save credentials</button>
+                </div>
                 <div class="settings-message" style="margin-left: 1rem"></div>
               </form>
             </section>
-
-             <!-- Device Settings Section 
-            <section class="device-settings-section" style="display: none;">
-              <h2>Device settings</h2>
-              <form class="device-settings-form">
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="frost-protection">Frost Protection Temp</label>
-                    <input type="number" id="frost-protection" name="frost-protection" value="6" />
-                  </div>
-                  <div class="form-group">
-                    <label for="occupied-temp">Occupied Temp</label>
-                    <input type="number" id="occupied-temp" name="occupied-temp" value="19" />
-                  </div>
-                  <div class="form-group">
-                    <label for="comfort-temp">Comfort Temp</label>
-                    <input type="number" id="comfort-temp" name="comfort-temp" value="21" />
-                  </div>
-                </div>
-              </form>
-            </section> -->
 
             <!-- Add Device Section -->
             <section class="add-device-section" style="display: none;">
@@ -131,11 +114,13 @@
                     <input type="text" id="device-app-key" name="device-app-key" pattern="[A-Fa-f0-9]{32}" placeholder="Device App Key" title="Entrez 32 caractères hexadécimaux"/>
                   </div>
                 </div>
+                <div class="buttons-container">
+                  <button type="button" class="save-button" id="add-tag-button">Add tag</button>
+                  <button type="submit" class="save-button">Add Device</button>
+                </div>
                 <div class="tags-container">
 
                 </div>
-                <button type="button" class="save-button" id="add-tag-button">Add tag</button>
-                <button type="submit" class="save-button">Add Device</button>
               </form>
             </section>
 
@@ -148,8 +133,8 @@
                     <div class="drop-zone" id="drop-zone">
                       <input type="file" id="csv-file" name="csv" accept=".csv" class="file-input"/>
                       <div class="drop-zone-text">
-                          Glissez et déposez votre fichier CSV ici<br>
-                          ou cliquez pour sélectionner
+                          Drag and drop your CSV file here<br>
+                          or click to select a file
                       </div>
                   </div>
                 </div>

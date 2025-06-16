@@ -34,9 +34,10 @@ function loadSettings() {
   return {
     server: settings.URL_SERVER,
     apiToken: settings.API_TOKEN,
-      tenantToken: settings.TENANT_TOKEN,
+    tenantToken: settings.TENANT_TOKEN,
     tenantId: settings.TENANT_ID,
     applicationId: settings.APP_ID,
+    serverPort: settings.SERVER_PORT || "8080"
   };
 }
 
@@ -49,14 +50,14 @@ function checkConfig({ server, apiToken, applicationId }) {
 }
 
 // Utility function to create a gRPC client using the same connection parameters
-function createGrpcClient(ServiceClient, server) {
+function createGrpcClient(ServiceClient, server, port = "8080") {
   console.log(`Creating gRPC client for server:`);
-  return new ServiceClient(server + ":8080", grpc.credentials.createInsecure());
+  return new ServiceClient(server + ":" + port, grpc.credentials.createInsecure());
 }
 
 // Cette fonction récupère la liste des devices
 async function getDevices() {
-  const { server, apiToken, applicationId } = loadSettings();
+  const { server, serverPort, apiToken, applicationId } = loadSettings();
   checkConfig({ server, apiToken, applicationId });
 
   const metadata = new grpc.Metadata();
@@ -64,7 +65,8 @@ async function getDevices() {
 
   const deviceService = createGrpcClient(
     device_grpc.DeviceServiceClient,
-    server
+    server,
+    serverPort
   );
 
   return new Promise((resolve, reject) => {
@@ -90,7 +92,7 @@ async function getDevices() {
 
 // Cette fonction récupère les détails d'un device
 async function getDeviceDetails(devEui) {
-  const { server, apiToken } = loadSettings();
+  const { server, serverPort, apiToken } = loadSettings();
   if (!server || !apiToken) {
     throw new Error("Missing configuration: URL_SERVER or API_TOKEN not set.");
   }
@@ -99,7 +101,8 @@ async function getDeviceDetails(devEui) {
 
   const deviceService = createGrpcClient(
     device_grpc.DeviceServiceClient,
-    server
+    server,
+    serverPort
   );
 
   return new Promise((resolve, reject) => {
@@ -135,7 +138,7 @@ async function getDeviceDetails(devEui) {
 
 // Met à jour un device
 function updatedevice(deviceData) {
-  const { server, apiToken, applicationId } = loadSettings();
+  const { server, serverPort, apiToken, applicationId } = loadSettings();
   checkConfig({ server, apiToken, applicationId });
 
   const metadata = new grpc.Metadata();
@@ -143,7 +146,8 @@ function updatedevice(deviceData) {
 
   const deviceService = createGrpcClient(
     device_grpc.DeviceServiceClient,
-    server
+    server,
+    serverPort
   );
 
   return new Promise((resolve, reject) => {
@@ -177,7 +181,7 @@ function updatedevice(deviceData) {
 
 // Liste les device profiles
 function listDeviceProfiles() {
-  const { server, apiToken, tenantId, applicationId } = loadSettings();
+  const { server, serverPort, apiToken, tenantId, applicationId } = loadSettings();
   checkConfig({ server, apiToken, applicationId });
 
   const metadata = new grpc.Metadata();
@@ -185,7 +189,8 @@ function listDeviceProfiles() {
 
   const deviceService = createGrpcClient(
     deviceProfile_grpc.DeviceProfileServiceClient,
-    server
+    server,
+    serverPort
   );
 
   return new Promise((resolve, reject) => {
@@ -207,7 +212,7 @@ function listDeviceProfiles() {
 
 // Liste les tenants
 function listTenants(credentials) {
-  const { server, apiToken, applicationId } = credentials ?? loadSettings();
+  const { server, serverPort, apiToken, applicationId } = credentials ?? loadSettings();
   checkConfig({ server, apiToken, applicationId });
 
   const metadata = new grpc.Metadata();
@@ -215,7 +220,8 @@ function listTenants(credentials) {
 
   const deviceService = createGrpcClient(
     tenant_grpc.TenantServiceClient,
-    server
+    server,
+    serverPort
   );
 
   return new Promise((resolve, reject) => {
@@ -236,7 +242,7 @@ function listTenants(credentials) {
 
 // Liste les tenants
 function getTenantInfo() {
-  const { server, apiToken, tenantId, applicationId } = loadSettings();
+  const { server, serverPort, apiToken, tenantId, applicationId } = loadSettings();
   checkConfig({ server, apiToken, applicationId });
 
   const metadata = new grpc.Metadata();
@@ -244,7 +250,8 @@ function getTenantInfo() {
 
   const tenantService = createGrpcClient(
     tenant_grpc.TenantServiceClient,
-    server
+    server,
+    serverPort
   );
 
   return new Promise((resolve, reject) => {
@@ -264,7 +271,7 @@ function getTenantInfo() {
 
 // Liste les applications
 function listApplication(credentials) {
-  const { server, apiToken, tenantId, applicationId } = credentials ?? loadSettings();
+  const { server, serverPort, apiToken, tenantId, applicationId } = credentials ?? loadSettings();
   //checkConfig({ server, apiToken, applicationId });
 
   const metadata = new grpc.Metadata();
@@ -272,7 +279,8 @@ function listApplication(credentials) {
 
   const deviceService = createGrpcClient(
     application_grpc.ApplicationServiceClient,
-    server
+    server,
+    serverPort
   );
 
   return new Promise((resolve, reject) => {
@@ -294,7 +302,7 @@ function listApplication(credentials) {
 
 // Ajoute un device
 function adddevice(deviceData) {
-  const { server, apiToken, applicationId } = loadSettings();
+  const { server, serverPort, apiToken, applicationId } = loadSettings();
   checkConfig({ server, apiToken, applicationId });
 
   const metadata = new grpc.Metadata();
@@ -302,7 +310,8 @@ function adddevice(deviceData) {
 
   const deviceService = createGrpcClient(
     device_grpc.DeviceServiceClient,
-    server
+    server,
+    serverPort
   );
 
   return new Promise((resolve, reject) => {
@@ -432,7 +441,7 @@ async function addDeviceFromCsv(csvString) {
 
 // Envoie un downlink
 function deleteDevice(devEui) {
-  const { server, apiToken } = loadSettings();
+  const { server, serverPort, apiToken } = loadSettings();
   if (!server || !apiToken) {
     throw new Error("Missing configuration: URL_SERVER or API_TOKEN not set.");
   }
@@ -441,7 +450,8 @@ function deleteDevice(devEui) {
 
   const deviceService = createGrpcClient(
     device_grpc.DeviceServiceClient,
-    server
+    server,
+    serverPort
   );
 
   return new Promise((resolve, reject) => {
@@ -461,7 +471,7 @@ function deleteDevice(devEui) {
 
 // Récupère le nom du device profile
 function getDeviceProfileName(deviceProfileId) {
-  const { server, apiToken } = loadSettings();
+  const { server, serverPort, apiToken } = loadSettings();
   if (!server || !apiToken) {
     throw new Error("Missing configuration: URL_SERVER or API_TOKEN not set.");
   }
@@ -470,7 +480,8 @@ function getDeviceProfileName(deviceProfileId) {
 
   const deviceProfileService = createGrpcClient(
     deviceProfile_grpc.DeviceProfileServiceClient,
-    server
+    server,
+    serverPort
   );
 
   return new Promise((resolve, reject) => {
@@ -488,7 +499,7 @@ function getDeviceProfileName(deviceProfileId) {
 
 // Envoie un downlink
 function sendDownlink(devEui, payloadArray, fPort = 1, confirmed = false) {
-  const { server, apiToken } = loadSettings();
+  const { server, serverPort, apiToken } = loadSettings();
   if (!server || !apiToken) {
     throw new Error("Missing configuration: URL_SERVER or API_TOKEN not set.");
   }
@@ -497,7 +508,8 @@ function sendDownlink(devEui, payloadArray, fPort = 1, confirmed = false) {
 
   const deviceService = createGrpcClient(
     device_grpc.DeviceServiceClient,
-    server
+    server,
+    serverPort
   );
 
   return new Promise((resolve, reject) => {

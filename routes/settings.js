@@ -29,15 +29,15 @@ router.get("/", (req, res) => {
 
 // POST settings
 router.post("/", (req, res) => {
-  const { API_TOKEN, URL_SERVER, TENANT_TOKEN, TENANT_ID, APP_ID } = req.body;
-  if (!API_TOKEN || !URL_SERVER ) {
+  const { API_TOKEN, URL_SERVER, SERVER_PORT, TENANT_TOKEN, TENANT_ID, APP_ID } = req.body;
+  if (!API_TOKEN || !URL_SERVER || !SERVER_PORT) {
     return res
       .status(400)
       .json({ success: false, message: "Missing required fields" });
   }
   fs.writeFile(
     getSettingsPath(),
-    JSON.stringify({ API_TOKEN, TENANT_TOKEN, URL_SERVER, TENANT_ID, APP_ID }, null, 2),
+    JSON.stringify({ API_TOKEN, TENANT_TOKEN, URL_SERVER, SERVER_PORT, TENANT_ID, APP_ID }, null, 2),
     (err) => {
       if (err)
         return res

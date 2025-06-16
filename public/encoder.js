@@ -409,7 +409,7 @@ function encodeDownlink(input) {
     fPort: input.fPort,
   };
 }
-function Dragino_lht65_encode_port_1(input) {
+function dragino_lht65_encode_port_1(input) {
   let interval = input.data.transmit_interval_time; // in minutes
   let bytes = [0, 0, 0];
   if (interval < 1 || interval > 16777215) {
@@ -420,7 +420,7 @@ function Dragino_lht65_encode_port_1(input) {
   bytes[2] = interval & 0xFF; // Third byte
   return bytes;
 }
-function Dragino_lht65_encode_port_40(input) {
+function dragino_lht65_encode_port_40(input) {
   let timeSync = input.data.time_sync_mode; // boolean value
   let bytes = [0];
   if (timeSync < 1 || timeSync > 255) {
@@ -429,7 +429,7 @@ function Dragino_lht65_encode_port_40(input) {
   bytes[0] = timeSync; // Set the time sync mode
   return bytes;
 }
-function Dragino_lht65_encode_port_41(input) {
+function dragino_lht65_encode_port_41(input) {
  let interval = input.data.time_sync_interval; // in days
   let bytes = [0, 0, 0];
   if (interval < 1 || interval > 255) {
@@ -438,7 +438,7 @@ function Dragino_lht65_encode_port_41(input) {
   bytes[0] = interval; // Set the time sync interval
   return bytes;
 }
-function Dragino_lht65_encode_port_48(input) {
+function dragino_lht65_encode_port_48(input) {
  let time = Math.floor(new Date(input.data.set_system_time).getTime() / 1000);
  console.log("Encoded time:", time);
   let bytes = [0, 0, 0, 0, 0];
@@ -452,7 +452,7 @@ function Dragino_lht65_encode_port_48(input) {
   bytes[4] = time & 0xFF; 
   return bytes;
 }
-function Dragino_lht65_encode_port_162(input) {
+function dragino_lht65_encode_port_162(input) {
   let mode = input.data.external_sensor_mode;
   let interrupt_mode = input.data.interrupt_mode;
   let counting_mode = input.data.counting_mode;
@@ -487,7 +487,7 @@ function Dragino_lht65_encode_port_162(input) {
   }
   return bytes;
 }
-function Dragino_lht65_encode_port_163(input) {
+function dragino_lht65_encode_port_163(input) {
  let clear = input.data.clear_flash_record; // boolean value
   let bytes = [0];
   if (clear < 1 || clear > 255) {
@@ -496,7 +496,7 @@ function Dragino_lht65_encode_port_163(input) {
   bytes[0] = clear; // Set the time sync mode
   return bytes;
 }
-function Dragino_lht65_encode_port_168(input) {
+function dragino_lht65_encode_port_168(input) {
  let externalSensor = input.data.external_sensor_mode; // boolean value
   let bytes = [0];
   if (externalSensor < 1 || externalSensor > 255) {
