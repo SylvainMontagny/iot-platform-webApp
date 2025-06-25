@@ -376,7 +376,9 @@ const actionForms = {
         },
       ],
     },
-    2: { fields: [] },
+    2: {
+      fields: []
+    },
     3: {
       fields: [
         {
@@ -1252,7 +1254,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sendBtn) {
     sendBtn.addEventListener("click", async () => {
       const actionTypeSelect = document.getElementById("action-type-select");
-      const port = Number(actionTypeSelect.value);
+      const port = (currentDeviceType == "micropelt-mlr003") ? Number(actionTypeSelect.value) : 1;
       const actionForm = document.getElementById("action-form");
       if (!actionForm) return;
 
@@ -1302,7 +1304,11 @@ document.addEventListener("DOMContentLoaded", () => {
           alert("Erreur d'encodage : " + e.message);
           return;
         }
-
+        if (port === 1) {
+          alert("Encoded value: " + encoded);
+          encoded.unshift(Number(actionTypeSelect.value) & 0xFF);
+          alert("Encoded value: " + encoded);
+        }
         payloads[dev_eui] = {
           dev_eui,
           confirmed: false,
