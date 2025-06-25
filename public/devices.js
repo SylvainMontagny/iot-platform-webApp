@@ -18,11 +18,11 @@ async function fetchDevices(deviceType) {
         return data.devices;
       } else {
         throw new Error(
-          data.message || "Erreur lors de la récupération des devices"
+          data.message || "Error retrieving devices"
         );
       }
     } catch (error) {
-      console.error("Erreur:", error);
+      console.error("Error:", error);
       return [];
     }
   }else{
@@ -34,11 +34,11 @@ async function fetchDevices(deviceType) {
         return data.devices;
       } else {
         throw new Error(
-          data.message || "Erreur lors de la récupération des devices"
+          data.message || "Error retrieving devices"
         );
       }
     } catch (error) {
-      console.error("Erreur:", error);
+      console.error("Error:", error);
       return [];
     }
   }
@@ -756,11 +756,11 @@ function renderActionForm(port) {
   let row = null;
   config.fields.forEach((field, idx) => {
     // Nouvelle ligne tous les 3 champs
-    if (idx % 3 === 0 && currentDeviceType != "Dragino-lht65") {
+    if (idx % 3 === 0 && currentDeviceType != "dragino-lht65") {
       row = document.createElement("div");
       row.className = "form-row";
       form.appendChild(row);
-    }else if (currentDeviceType == "Dragino-lht65" && idx === 0) {
+    }else if (currentDeviceType == "dragino-lht65" && idx === 0) {
       row = document.createElement("div");
       row.className = "form-row";
       form.appendChild(row);
@@ -840,7 +840,7 @@ async function setTenantOptions() {
   const res = await fetch("/api/gettenants");
   const data = await res.json();
   if (!data.success) {
-    console.error("Erreur lors de la récupération des tenants:", data.message);
+    console.error("Error retrieving tenants:", data.message);
     tenantSelect.innerHTML = "";
     if (data.message.includes("UNAUTHENTICATED") && tenantIdInput) {
       const result = await fetch("/api/gettenantinfo");
@@ -871,14 +871,14 @@ async function setApplicationOptions() {
   const res = await fetch("/api/getapplications");
   const data = await res.json();
   if (!data.success) {
-    console.error("Erreur lors de la récupération des applications:", data.message);
+    console.error("Error retrieving applications:", data.message);
      applicationSelect.innerHTML = "";
       applicationSelect.innerHTML = "<option value=''>No options</option>";
     return;
   }
-  const applicatons = data.applications;
+  const applications = data.applications;
   applicationSelect.innerHTML = "";
-  applicatons.forEach((app) => {
+  applications.forEach((app) => {
     const option = document.createElement("option");
     option.value = app.id;
     option.textContent = app.name;
@@ -891,7 +891,7 @@ async function setDeviceProfileOptions() {
   const res = await fetch("/api/getdeviceprofile");
   const data = await res.json();
   if (!data.success) {
-    console.error("Erreur lors de la récupération des devices profiles:", data.message);
+    console.error("Error retrieving devices profiles:", data.message);
     return;
   }
   const deviceProfiles = data.deviceProfiles;
@@ -991,8 +991,8 @@ async function saveSettings(settings) {
           alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
         }
       } catch (error) {
-        console.error("Erreur lors de la sauvegarde des paramètres:", error);
-        alert("Erreur de connexion. Veuillez réessayer.");
+        console.error("Error saving settings:", error);
+        alert("Connection error. Please try again.");
       }
 }
 
@@ -1009,6 +1009,7 @@ async function testConnection() {
   const apiTokenInput = document.querySelector(".settings-section #api-token");
   const tenantIdInput = document.querySelector(".settings-section #tenant-id");
   const serverInput = document.querySelector(".settings-section #network-server");
+  const serverPortInput = document.querySelector(".settings-section #network-server-port");
   const inputs = document.querySelectorAll(".settings-form input");
   const msgDiv = document.querySelector(".settings-message");
   let response;
@@ -1020,15 +1021,15 @@ async function testConnection() {
       const data = await fetch("/api/testconnection", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({server: serverInput.value, apiToken: apiTokenInput.value, tenantId: tenantIdInput.value}),
+        body: JSON.stringify({server: serverInput.value, serverPort : serverPortInput.value, apiToken: apiTokenInput.value, tenantId: tenantIdInput.value}),
       });
       const response = await data.json();
     
       if (!response.success) {
-        throw new Error(response.message || "Impossible de se connecter");
+        throw new Error(response.message || "Unable to connect");
       }else {
         if (msgDiv) {
-          msgDiv.textContent = "Connection successfull!";
+          msgDiv.textContent = "Connection successful!";
           msgDiv.style.color = "#2ecc40";
           // Efface le message après 3 secondes
           setTimeout(() => {
@@ -1038,8 +1039,8 @@ async function testConnection() {
       }
       return response;
     } catch (err) {
-      alert("Erreur réseau : " + err);
-      response = { success: false, message: err|| "Erreur réseau" };
+      alert("Network error : " + err);
+      response = { success: false, message: err|| "Network error" };
       return response;
     }
   } else if (!tenantTokenCheckbox.checked) {
@@ -1047,15 +1048,15 @@ async function testConnection() {
       const data = await fetch("/api/testconnection", {
         method: "post",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({server: serverInput.value, apiToken: apiTokenInput.value}),
+        body: JSON.stringify({server: serverInput.value, serverPort : serverPortInput.value, apiToken: apiTokenInput.value}),
       });
       const response = await data.json();
     
       if (!response.success) {
-        throw new Error(response.message || "Impossible de se connecter");
+        throw new Error(response.message || "Unable to connect");
       }else {
         if (msgDiv) {
-          msgDiv.textContent = "Connection successfull!";
+          msgDiv.textContent = "Connection successful!";
           msgDiv.style.color = "#2ecc40";
           // Efface le message après 3 secondes
           setTimeout(() => {
@@ -1065,8 +1066,8 @@ async function testConnection() {
       }
       return response;
     } catch (err) {
-      alert("Erreur réseau : " + err);
-      response = { success: false, message: err|| "Erreur réseau" };
+      alert("Network error : " + err);
+      response = { success: false, message: err|| "Network error" };
       return response;
     }
   }
@@ -1098,8 +1099,8 @@ document.addEventListener("DOMContentLoaded", () => {
           alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
         }
       } catch (error) {
-        console.error("Erreur lors de la sauvegarde des paramètres:", error);
-        alert("Erreur de connexion. Veuillez réessayer.");
+        console.error("Error saving settings:", error);
+        alert("Connection error. Please try again.");
       }
   });
 
@@ -1115,11 +1116,11 @@ document.addEventListener("DOMContentLoaded", () => {
           refreshDevices();
           setDeviceProfileOptions();
         } else {
-          alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
+          alert("Error : " + (data.message || "Unable to save"));
         }
       } catch (error) {
-        console.error("Erreur lors de la sauvegarde des paramètres:", error);
-        alert("Erreur de connexion. Veuillez réessayer.");
+        console.error("Error saving settings:", error);
+        alert("Connection error. Please try again.");
       }
   });
 
@@ -1215,9 +1216,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const filedisplay = dropZoneText.querySelector("div") || document.createElement('div');
     filedisplay.innerHTML ="";
     if (file.size / 1024 > 1) {
-      filedisplay.innerHTML = `<strong>Fichier sélectionné :</strong> ${fileName} ${(file.size / 1024).toFixed(2)} Ko`;
+      filedisplay.innerHTML = `<strong>Selected file :</strong> ${fileName} ${(file.size / 1024).toFixed(2)} Ko`;
     }else {
-      filedisplay.innerHTML = `<strong>Fichier sélectionné :</strong> ${fileName} ${file.size} octets`;
+      filedisplay.innerHTML = `<strong>Selected file :</strong> ${fileName} ${file.size} octets`;
     }
     dropZoneText.appendChild(filedisplay);
   });
@@ -1336,10 +1337,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const result = await response.json();
-        alert("Action envoyée avec succès !");
-        console.log("Réponse du back :", result);
+        alert("Action sent successfully!");
+        console.log("Back response:", result);
       } catch (err) {
-        alert("Erreur réseau : " + err.message);
+        alert("Network error: " + err.message);
       }
       console.log("Form data:", formData);
     });
@@ -1517,11 +1518,11 @@ document.addEventListener("DOMContentLoaded", () => {
           const tagsContainer = document.querySelector(".tags-container");
           tagsContainer.innerHTML = ""; // Effacer les tags précédents
         } else {
-          alert("Erreur : " + (data.message || "Impossible d'ajouter le device"));
+          alert("Error: " + (data.message || "Unable to add device"));
         }
       } catch (error) {
-        console.error("Erreur lors de l'ajout du device:", error);
-        alert("Erreur de connexion. Veuillez réessayer.");
+        console.error("Error adding device:", error);
+        alert("Connection error. Please try again.");
       }
     });
 
@@ -1585,11 +1586,11 @@ document.addEventListener("DOMContentLoaded", () => {
           alert("Device added successfully!");
           refreshDevices();
         } else {
-          alert("Erreur : " + (data.message || "Impossible d'ajouter le device"));
+          alert("Error: " + (data.message || "Unable to add device"));
         }
       } catch (error) {
-        console.error("Erreur lors de l'ajout du device:", error);
-        alert("Erreur de connexion. Veuillez réessayer.");
+        console.error("Error adding device:", error);
+        alert("Connection error. Please try again.");
       }
     });
     

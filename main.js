@@ -13,7 +13,7 @@ let expressApp;
 let server;
 
 function createWindow() {
-  console.log("Création de la fenêtre Electron...");
+  console.log("Creation of the Electron window...");
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -45,7 +45,7 @@ function startExpressServer() {
 
   server = http.createServer(expressApp);
   server.listen(port, () => {
-    console.log(`✅ Serveur HTTP lancé sur http://localhost:${port}`);
+    console.log(`✅ HTTP server started on http://localhost:${port}`);
     createWindow();
   });
 }

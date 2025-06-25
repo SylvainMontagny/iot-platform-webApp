@@ -67,7 +67,7 @@ router.get('/getdeviceprofile', async (req, res) => {
     try {
         const deviceProfiles = await listDeviceProfiles();
         if (!deviceProfiles) {
-            return res.status(404).json({ success: false, message: "Device not found" });
+            return res.status(404).json({ success: false, message: "Devices profiles not found" });
         }
         res.json({ success: true, deviceProfiles: deviceProfiles });
     } catch (err) {
@@ -80,7 +80,7 @@ router.get('/gettenants', async (req, res) => {
     try {
         const tenants = await listTenants();
         if (!tenants) {
-            return res.status(404).json({ success: false, message: "Device not found" });
+            return res.status(404).json({ success: false, message: "Tenants not found" });
         }
         res.json({ success: true, tenants: tenants });
     } catch (err) {
@@ -93,7 +93,7 @@ router.get('/gettenantinfo', async (req, res) => {
     try {
         const tenant = await getTenantInfo();
         if (!tenant) {
-            return res.status(404).json({ success: false, message: "Device not found" });
+            return res.status(404).json({ success: false, message: "Tenant not found" });
         }
         res.json({ success: true, tenant: tenant });
     } catch (err) {
@@ -106,7 +106,7 @@ router.get('/getapplications', async (req, res) => {
     try {
         const applications = await listApplication();
         if (!applications) {
-            return res.status(404).json({ success: false, message: "Device not found" });
+            return res.status(404).json({ success: false, message: "Applications not found" });
         }
         res.json({ success: true, applications: applications });
     } catch (err) {
@@ -127,7 +127,7 @@ router.post('/testconnection', async (req, res) => {
          try {
             const applications = await listApplication(credentials);
             if (!applications) {
-                return res.status(404).json({ success: false, message: "Device not found" });
+                return res.status(404).json({ success: false, message: "applications not found" });
             }
             res.json({ success: true, applications: applications });
         } catch (err) {
@@ -171,7 +171,7 @@ router.post('/deletedevices', async (req, res) => {
     if (!Array.isArray(devices) || devices.length === 0) {
         return res.status(400).json({
             success: false,
-            message: "Requête invalide : une liste de devices est requise",
+            message: "invalid request: a list of devices is required",
         });
     }
 
@@ -194,7 +194,7 @@ router.post('/downlink', async (req, res) => {
     if (!Array.isArray(devices) || devices.length === 0) {
         return res.status(400).json({
             success: false,
-            message: "Requête invalide : une liste de devices est requise",
+            message: "invalid request: a list of devices is required",
         });
     }
 

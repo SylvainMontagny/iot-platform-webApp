@@ -50,7 +50,7 @@ function checkConfig({ server, apiToken, applicationId }) {
 }
 
 // Utility function to create a gRPC client using the same connection parameters
-function createGrpcClient(ServiceClient, server, port = "8080") {
+function createGrpcClient(ServiceClient, server, port) {
   console.log(`Creating gRPC client for server:`);
   return new ServiceClient(server + ":" + port, grpc.credentials.createInsecure());
 }
@@ -400,7 +400,7 @@ async function addDeviceFromCsv(csvString) {
   devices = devices.map(device => {
     const profile = deviceProfiles.find(dp => dp.name === device.deviceprofile);
     if (!profile) {
-      throw new Error(`Profile non trouvé: ${device.deviceprofile}`);
+      throw new Error(`Profile not found: ${device.deviceprofile}`);
     }
     return {
       ...device,
