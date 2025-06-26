@@ -372,6 +372,10 @@ async function addDeviceFromCsv(csvString) {
 
   if (parsedData.errors.length > 0) {
     throw new Error("CSV parsing error: " + parsedData.errors[0].message);
+  }else if (parsedData.data.length === 0) {
+    throw new Error("CSV is empty or does not contain valid data.");
+  }else if (!parsedData.data[0].hasOwnProperty("dev_eui") || !parsedData.data[0].hasOwnProperty("join_eui") || !parsedData.data[0].hasOwnProperty("name") || !parsedData.data[0].hasOwnProperty("app_key")) {
+    throw new Error("CSV must contain dev_eui, join_eui, name, and app_key columns.");
   }
 
   let devices = parsedData.data.map((row) => ({

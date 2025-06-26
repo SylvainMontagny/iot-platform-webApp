@@ -410,10 +410,11 @@ function encodeDownlink(input) {
   };
 }
 function dragino_lht65_encode_port_1(input) {
-  let interval = input.data.transmit_interval_time; // in minutes
+  let unit = input.data.transmit_interval_time_unit;
+  let interval = input.data.transmit_interval_time * unit; // in seconds
   let bytes = [0, 0, 0];
   if (interval < 1 || interval > 16777215) {
-    throw new Error("Transmit interval time out of range (1-16777215 minutes)");
+    throw new Error("Transmit interval time out of range (1-16777215 seconds)");
   }
   bytes[0] = (interval >> 16) & 0xFF; // First byte
   bytes[1] = (interval >> 8) & 0xFF; // Second byte

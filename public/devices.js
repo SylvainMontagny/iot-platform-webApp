@@ -5,7 +5,7 @@ const profileNames = {
 };
 
 // État du type de device actif
-let currentDeviceType = "micropelt-mlr003"; // Par défaut, on affiche les valves
+let currentDeviceType = "micropelt-mlr003"; // Par défaut, on affiche tout
 
 // Fonction pour récupérer les devices depuis l'API
 async function fetchDevices(deviceType) {
@@ -91,7 +91,7 @@ function updateDevicesTable(devices) {
   if (currentSort.column) {
     devices = sortDevices(devices, currentSort.column, currentSort.direction);
   }
-
+  loadedDevices = devices;
   tbody.innerHTML = devices
     .map(
       (device, idx) => `
@@ -167,7 +167,7 @@ async function refreshDevices() {
   }else{
    devices = await fetchDevices(profileNames[currentDeviceType] ?? null);
   }
-  loadedDevices = devices; // <-- Ajouté
+  loadedDevices = devices;
   updateDevicesTable(devices);
 }
 // Fonctions pour gérer l'affichage du changement de section
@@ -613,17 +613,22 @@ const actionForms = {
         {
           label: "Transmit Interval Time",
           name: "transmit_interval_time",
+          type: "number",
+          min: 0,
+          max: 16777215,
+          value: 30,
+          step: 1,
+        },
+        {
+          label: "Unit",
+          name: "transmit_interval_time_unit",
           type: "select",
           options: [
-            { label: "30 sec", value: 30 },
-            { label: "1 min", value: 60 },
-            { label: "10 min", value: 600 },
-            { label: "30 min", value: 1800 },
-            { label: "1 h", value: 3600 },
-            { label: "12 h", value: 43200 },
-            { label: "24 h", value: 86400 },
+            { label: "Second", value: 1 },
+            { label: "Minute", value: 60 },
+            { label: "Hour", value: 3600 },
           ],
-        },
+        }
       ],
     },
     40: {
@@ -833,6 +838,24 @@ function renderActionForm(port) {
     });
     SelectDraginoSensorMode.dispatchEvent(new Event("change")); // Pour initialiser l'affichage
   }
+
+  const TransmitTimeInput = document.querySelector(".action-form #transmit_interval_time");
+  const SelectDraginoTransmitTimeUnit = document.querySelector(".action-form #transmit_interval_time_unit");
+  if (SelectDraginoTransmitTimeUnit) {
+    SelectDraginoTransmitTimeUnit.addEventListener("change", (e) => {
+      const selectedValue = Number(e.target.value);
+      TransmitTimeInput.max = Math.floor(16777215 / selectedValue);
+    });
+    TransmitTimeInput.addEventListener("input", (e) => {
+      if (Number(e.target.value) > Number(TransmitTimeInput.max)) {
+        e.target.value = TransmitTimeInput.max;
+      }else if (Number(e.target.value) < 0) {
+        e.target.value = 0;
+      }
+    });
+    TransmitTimeInput.dispatchEvent(new Event("input"));
+    SelectDraginoTransmitTimeUnit.dispatchEvent(new Event("change"));
+  }
 }
 
 async function setTenantOptions() {
@@ -1017,11 +1040,11 @@ async function testConnection() {
   let response;
 
   if (tenantTokenCheckbox.checked && !document.querySelector(".settings-section #tenant-id").value) {
-    alert("Veuillez entrer un Tenant ID.");
+    alert("Please enter a Tenant ID");
   }else if (tenantTokenCheckbox.checked) {
     try {
       const data = await fetch("/api/testconnection", {
-        method: "GET",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({server: serverInput.value, serverPort : serverPortInput.value, apiToken: apiTokenInput.value, tenantId: tenantIdInput.value}),
       });
@@ -1048,7 +1071,7 @@ async function testConnection() {
   } else if (!tenantTokenCheckbox.checked) {
     try {
       const data = await fetch("/api/testconnection", {
-        method: "post",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({server: serverInput.value, serverPort : serverPortInput.value, apiToken: apiTokenInput.value}),
       });
@@ -1165,7 +1188,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.addEventListener(eventName, preventDefaults, false);
     });
 
-    // Gérer les effets visuels
+      // Gérer les effets visuels
     ['dragenter', 'dragover'].forEach(eventName => {
         dropdown.addEventListener(eventName, highlight, false);
     });
@@ -1183,17 +1206,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function highlight(e) {
-        dropdown.classList.add('drag-over');
+        if (!fileDialogOpen) {
+          dropdown.classList.add('drag-over');
+        }
     }
 
     function unhighlight(e) {
-        dropdown.classList.remove('drag-over');
+        if (!fileDialogOpen) {
+          dropdown.classList.remove('drag-over');
+        }
     }
 
     function handleDrop(e) {
         const dt = e.dataTransfer;
         const files = dt.files;
-        handleFiles(files);
+        if (!fileDialogOpen) {
+          handleFiles(files);
+        }
     }
 
     function handleFiles(files) {
@@ -1281,7 +1310,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ".device-checkbox:checked"
       );
       if (checkedBoxes.length === 0) {
-        alert("Sélectionnez au moins un device.");
+        alert("Select at least one device.");
         return;
       }
 
@@ -1305,9 +1334,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         if (port === 1) {
-          alert("Encoded value: " + encoded);
           encoded.unshift(Number(actionTypeSelect.value) & 0xFF);
-          alert("Encoded value: " + encoded);
         }
         payloads[dev_eui] = {
           dev_eui,
@@ -1576,7 +1603,11 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const fileInput = document.querySelector(".file-input");
       const file = fileInput.files[0];
+
       try {
+        if (!file) {
+          throw new Error("Please select a CSV file to upload.");
+        }
       
         const csvString = await file.text();
 
@@ -1595,8 +1626,8 @@ document.addEventListener("DOMContentLoaded", () => {
           alert("Error: " + (data.message || "Unable to add device"));
         }
       } catch (error) {
-        console.error("Error adding device:", error);
-        alert("Connection error. Please try again.");
+        console.error("Error adding device:", error.message);
+        alert("Error adding device: " + error.message);
       }
     });
     
@@ -1605,6 +1636,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .querySelector(".settings-form")
     .addEventListener("submit", async (e) => {
       e.preventDefault();
+      e.stopPropagation();
       const submitter = e.submitter.id;
       const tenantTokenCheckbox = document.querySelector(".settings-section #tenant-key-checkbox");
       const apiTokenInput = document.querySelector(".settings-section #api-token");
@@ -1655,7 +1687,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
               refreshDevices();
             } else {
-              alert("Erreur : " + (data.message || "Impossible de sauvegarder"));
+              alert("Erreur : " + (data.message || "Unable to save settings"));
             }
           }else {
             if (msgDiv) {
@@ -1672,7 +1704,7 @@ document.addEventListener("DOMContentLoaded", () => {
           await testConnection();
           break;
         default:
-          console.warn("Formulaire inconnu:", target.id);
+          console.warn("Unknwown form:", target.id);
           return;
       }
     });

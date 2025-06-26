@@ -1,4 +1,4 @@
-const { app, BrowserWindow} = require("electron");
+const { app, Menu, shell, BrowserWindow} = require("electron");
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
@@ -11,6 +11,39 @@ const settingsRoutes = require("./routes/settings");
 let mainWindow;
 let expressApp;
 let server;
+
+const template = [
+  // ... other menus ...
+  {
+    label: 'Help',
+    role: 'help',
+    submenu: [
+      {
+        label: 'documentation',
+        click: async () => {
+          await shell.openExternal('https://github.com/SylvainMontagny/iot-platform-webApp/wiki');
+        }
+      },
+      {
+        label: 'About',
+        click: async () => {
+          await shell.openExternal('https://github.com/SylvainMontagny/iot-platform-webApp/blob/main/README.md');
+        }
+      },
+      {
+        label: 'Csv Import Template',
+        click: async () => {
+          await shell.openExternal('https://github.com/SylvainMontagny/iot-platform-webApp/blob/dev/template.csv');
+        }
+      }
+      // Add more items here
+    ]
+  }
+];
+
+const menu = Menu.buildFromTemplate(template);
+Menu.setApplicationMenu(menu);
+
 
 function createWindow() {
   console.log("Creation of the Electron window...");
