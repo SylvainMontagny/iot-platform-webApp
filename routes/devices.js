@@ -141,8 +141,8 @@ router.post('/testconnection', async (req, res) => {
 router.post('/adddevice', async (req, res) => {
     const deviceData = req.body;
 
-    if (!deviceData.deviceEUI) {
-        return res.status(400).json({ success: false, message: "Missing devEui in request body" });
+    if (!deviceData.deviceEUI || !deviceData.deviceName || !deviceData.deviceAppKey) {
+        return res.status(400).json({ success: false, message: "Missing devEui, deviceName, or deviceAppKey in request body" });
     }
 
     try {
