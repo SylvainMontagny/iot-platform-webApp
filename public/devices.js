@@ -1206,23 +1206,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function highlight(e) {
-        if (!fileDialogOpen) {
           dropdown.classList.add('drag-over');
-        }
+        
     }
 
     function unhighlight(e) {
-        if (!fileDialogOpen) {
           dropdown.classList.remove('drag-over');
-        }
     }
 
     function handleDrop(e) {
         const dt = e.dataTransfer;
         const files = dt.files;
-        if (!fileDialogOpen) {
           handleFiles(files);
-        }
     }
 
     function handleFiles(files) {
@@ -1603,6 +1598,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const fileInput = document.querySelector(".file-input");
       const file = fileInput.files[0];
+
 
       try {
         if (!file) {
