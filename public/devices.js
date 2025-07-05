@@ -1193,7 +1193,6 @@ document.addEventListener("DOMContentLoaded", () => {
       tenantIdInput.value = ""; // Effacer la valeur si désactivé
       tenantIdLabel.style.display = "none";
     }
-    await saveSettings(["TENANT_TOKEN"]);
   });
 
   //#region ////////// Gestion du drop down /////////////
