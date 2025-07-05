@@ -33,10 +33,9 @@ const template = [
       {
         label: 'Csv Import Template',
         click: async () => {
-          await shell.openExternal('https://github.com/SylvainMontagny/iot-platform-webApp/blob/dev/template.csv');
+          await shell.openExternal('https://github.com/SylvainMontagny/iot-platform-webApp/blob/main/template.csv');
         }
       }
-      // Add more items here
     ]
   }
 ];

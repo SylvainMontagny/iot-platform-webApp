@@ -99,7 +99,7 @@ function updateDevicesTable(devices) {
             <td>
               <input type="checkbox" class="device-checkbox" data-device-index="${idx}" />
             </td>
-            <td>${device.name || "N/A"}</td>
+            <td class="device-name">${device.name || "N/A"}</td>
             <td>${device.tags?.site || "N/A"}</td>
             <td>${device.tags?.building || "N/A"}</td>
             <td>${device.tags?.room || "N/A"}</td>
@@ -174,6 +174,7 @@ async function refreshDevices() {
 function ControlDisplay() {
   document.querySelector(".delete-button#delete-device-btn").style.display = "none";
   document.querySelector(".send-button#send-action-btn").style.display = "flex";
+  document.querySelector(".send-button#send-confirmed-action-btn").style.display = "flex";
   document.querySelectorAll(".page-sections section").forEach((section) => {
     let isControlRelated =  section.classList.contains("device-settings-section") || 
                             section.classList.contains("device-section") || 
@@ -199,6 +200,7 @@ function ProvisionningDisplay(action) {
         
         document.querySelector(".delete-button#delete-device-btn").style.display = "flex";
         document.querySelector(".send-button#send-action-btn").style.display = "none";
+        document.querySelector(".send-button#send-confirmed-action-btn").style.display = "none";
         isProvisionningRelated = section.classList.contains("device-section")
         break;
       default:
@@ -957,7 +959,7 @@ async function loadSettings() {
  * @returns {Promise<void>}
  * @example
  * // Sauvegarder les paramètres
- * await saveSettings();
+ * await saveSettings(["API_TOKEN"]);
  */
 async function saveSettings(settings) {
   const { server, serverPort, apiToken, tenantId, applicationId, tenantToken } = await loadSettings();
@@ -1111,6 +1113,22 @@ document.addEventListener("DOMContentLoaded", () => {
         });
   });
   
+  const searchDevicesInput = document.querySelector(".device-search #device-search-input");
+  if (searchDevicesInput) {
+    searchDevicesInput.addEventListener("input", (e) => {
+      const searchValue = e.target.value.toLowerCase();
+      const deviceRows = document.querySelectorAll(".devices-table tbody tr");
+      deviceRows.forEach((row) => {
+        const deviceName = row.querySelector("td.device-name").textContent.toLowerCase();
+        if (deviceName.includes(searchValue) || searchValue === "") {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    });
+  }
+
   //Ajouter l'écouteur d'événement pour la selection du tenant
   const tenantSelect = document.querySelector(".tenant-select #tenant");
   tenantSelect.addEventListener("change", async (e) => {
@@ -1275,102 +1293,105 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Bouton Send pour envoyer l'action aux devices sélectionnés
   const sendBtn = document.getElementById("send-action-btn");
-    if (sendBtn) {
-    sendBtn.addEventListener("click", async () => {
-      const actionTypeSelect = document.getElementById("action-type-select");
-      const port = (currentDeviceType == "micropelt-mlr003") ? Number(actionTypeSelect.value) : 1;
-      const actionForm = document.getElementById("action-form");
-      if (!actionForm) return;
+  const sendConfirmedBtn = document.getElementById("send-confirmed-action-btn");
+  if (sendBtn && sendConfirmedBtn) {
+    [sendBtn, sendConfirmedBtn].forEach( button =>{
+      button.addEventListener("click", async (e) => {
+        const actionTypeSelect = document.getElementById("action-type-select");
+        const port = (currentDeviceType == "micropelt-mlr003") ? Number(actionTypeSelect.value) : 1;
+        const actionForm = document.getElementById("action-form");
+        if (!actionForm) return;
 
-      // Récupère les valeurs du formulaire dynamiquement
-      const formData = {};
-      Array.from(actionForm.elements).forEach((el) => {
-        if (!el.name) return;
-        if (el.type === "number") {
-          formData[el.name] = Number(el.value);
-        } else if (el.type === "select-one") {
-          // Pour les booléens
-          if (el.value === "true") formData[el.name] = true;
-          else if (el.value === "false") formData[el.name] = false;
-          else if (!isNaN(Number(el.value)))
+        // Récupère les valeurs du formulaire dynamiquement
+        const formData = {};
+        Array.from(actionForm.elements).forEach((el) => {
+          if (!el.name) return;
+          if (el.type === "number") {
             formData[el.name] = Number(el.value);
-          else formData[el.name] = el.value;
-        } else {
-          formData[el.name] = el.value;
-        }
-      });
-
-      // Récupère les devices sélectionnés
-      const checkedBoxes = document.querySelectorAll(
-        ".device-checkbox:checked"
-      );
-      if (checkedBoxes.length === 0) {
-        alert("Select at least one device.");
-        return;
-      }
-
-      // Pour chaque checkbox, prépare le payload encodé
-      const payloads = {};
-      checkedBoxes.forEach((cb) => {
-        const idx = Number(cb.getAttribute("data-device-index"));
-        const device = loadedDevices[idx];
-        if (!device) return;
-        const dev_eui = device.devEui || device.dev_eui || device.devEUI;
-        if (!dev_eui) return;
-
-        // Appel de l'encodeur dynamique
-        let encoded;
-        try {
-          encoded = window[`${currentDeviceType.replaceAll('-','_')}_encode_port_${port}`]
-            ? window[`${currentDeviceType.replaceAll('-','_')}_encode_port_${port}`]({ data: formData })
-            : [];
-        } catch (e) {
-          alert("Erreur d'encodage : " + e.message);
-          return;
-        }
-        if (port === 1) {
-          encoded.unshift(Number(actionTypeSelect.value) & 0xFF);
-        }
-        payloads[dev_eui] = {
-          dev_eui,
-          confirmed: false,
-          f_port: port,
-          data: encoded,
-        };
-      });
-
-      let toSend;
-      const keys = Object.keys(payloads);
-      if (keys.length === 1) {
-        toSend = [payloads[keys[0]]];
-      } else {
-        toSend = Object.values(payloads);
-      }
-      console.log("toSend", toSend);
-
-      // Envoi de l'action à l'API
-      try {
-        const response = await fetch("/api/downlink", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(toSend),
+          } else if (el.type === "select-one") {
+            // Pour les booléens
+            if (el.value === "true") formData[el.name] = true;
+            else if (el.value === "false") formData[el.name] = false;
+            else if (!isNaN(Number(el.value)))
+              formData[el.name] = Number(el.value);
+            else formData[el.name] = el.value;
+          } else {
+            formData[el.name] = el.value;
+          }
         });
 
-        if (!response.ok) {
-          const error = await response.json().catch(() => ({}));
-          alert(
-            "Erreur lors de l'envoi : " + (error.message || response.statusText)
-          );
+        // Récupère les devices sélectionnés
+        const checkedBoxes = document.querySelectorAll(
+          ".device-checkbox:checked"
+        );
+        if (checkedBoxes.length === 0) {
+          alert("Select at least one device.");
           return;
         }
 
-        const result = await response.json();
-        alert("Action sent successfully!");
-        console.log("Back response:", result);
-      } catch (err) {
-        alert("Network error: " + err.message);
-      }
-      console.log("Form data:", formData);
+        // Pour chaque checkbox, prépare le payload encodé
+        const payloads = {};
+        checkedBoxes.forEach((cb) => {
+          const idx = Number(cb.getAttribute("data-device-index"));
+          const device = loadedDevices[idx];
+          if (!device) return;
+          const dev_eui = device.devEui || device.dev_eui || device.devEUI;
+          if (!dev_eui) return;
+
+          // Appel de l'encodeur dynamique
+          let encoded;
+          try {
+            encoded = window[`${currentDeviceType.replaceAll('-','_')}_encode_port_${port}`]
+              ? window[`${currentDeviceType.replaceAll('-','_')}_encode_port_${port}`]({ data: formData })
+              : [];
+          } catch (e) {
+            alert("Erreur d'encodage : " + e.message);
+            return;
+          }
+          if (port === 1) {
+            encoded.unshift(Number(actionTypeSelect.value) & 0xFF);
+          }
+          payloads[dev_eui] = {
+            dev_eui,
+            confirmed: (e.target.id === "send-action-btn") ? false : true,
+            f_port: port,
+            data: encoded,
+          };
+        });
+
+        let toSend;
+        const keys = Object.keys(payloads);
+        if (keys.length === 1) {
+          toSend = [payloads[keys[0]]];
+        } else {
+          toSend = Object.values(payloads);
+        }
+        console.log("toSend", toSend);
+
+        // Envoi de l'action à l'API
+        try {
+          const response = await fetch("/api/downlink", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(toSend),
+          });
+
+          if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            alert(
+              "Erreur lors de l'envoi : " + (error.message || response.statusText)
+            );
+            return;
+          }
+
+          const result = await response.json();
+          alert("Action sent successfully!");
+          console.log("Back response:", result);
+        } catch (err) {
+          alert("Network error: " + err.message);
+        }
+        console.log("Form data:", formData);
+      });
     });
   }
 

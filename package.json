@@ -17,7 +17,7 @@
         "start": "npx electron main.js",
         "dist": "electron-builder"
     },
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "A web-based device controller for managing devices.",
     "keywords": [],
     "author": "",

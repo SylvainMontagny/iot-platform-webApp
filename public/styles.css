@@ -325,6 +325,26 @@ h2 {
   margin-bottom: 1rem;
 }
 
+.device-search{
+  display:flex;
+  gap: 1rem;
+}
+
+
+.device-search input {
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background-color: white;
+}
+
+.device-search input:focus {
+  outline: none;
+  border-color: #0f6cbd;
+}
+
+
 .refresh-button, 
 .send-button,
 .delete-button {
