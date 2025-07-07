@@ -165,7 +165,7 @@ async function refreshDevices() {
   if (section === "delete-device"){
     devices = await fetchDevices(null);
   }else{
-   devices = await fetchDevices(profileNames[currentDeviceType] ?? null);
+   devices = await fetchDevices(/*profileNames[currentDeviceType] ??*/ null);
   }
   loadedDevices = devices;
   updateDevicesTable(devices);
@@ -316,8 +316,6 @@ function handleSectionChange(section) {
       renderActionForm(1); // Afficher le formulaire pour le port 1 par défaut
     }
   }
-  // Rafraîchir les devices avec le nouveau type
-  refreshDevices();
 }
 
 // Définition des formulaires pour chaque action
